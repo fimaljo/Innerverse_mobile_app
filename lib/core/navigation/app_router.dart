@@ -19,6 +19,8 @@ class AppRouter {
 
     // Route redirect logic for authentication
     redirect: (context, state) {
+      return null;
+    
       // final authBloc = context.read<AuthBloc>();
       // final authState = authBloc.state;
 

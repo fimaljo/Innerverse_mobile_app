@@ -110,8 +110,7 @@ class _CustomeTextFieldState extends State<CustomeTextField> {
               onFieldSubmitted: widget.onSubmitted,
               onTap: widget.onTap,
               enabled: widget.enabled,
-              maxLines: widget.maxLines ?? null,
-              textAlign: TextAlign.start,
+              maxLines: widget.maxLines,
               style:
                   widget.textStyle ??
                   TextStyle(

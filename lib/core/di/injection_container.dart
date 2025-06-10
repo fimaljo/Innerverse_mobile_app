@@ -33,7 +33,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 // import 'package:innerverse/features/worlds/domain/usecases/get_worlds.dart';
 // import 'package:innerverse/features/worlds/presentation/blocs/world_bloc.dart';
 
-final sl = GetIt.instance;
+final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
   // //! Features - Auth

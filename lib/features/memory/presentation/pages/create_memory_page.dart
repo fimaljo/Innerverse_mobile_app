@@ -25,7 +25,7 @@ class CreateMemoryPage extends HookWidget {
       [animationController],
     );
 
-    final List<Map<String, String>> emojiData = [
+    final emojiData = <Map<String, String>>[
       {'emoji': '😊', 'label': 'Happy'},
       {'emoji': '😢', 'label': 'Sad'},
       {'emoji': '😡', 'label': 'Angry'},
@@ -248,14 +248,13 @@ class CreateMemoryPage extends HookWidget {
 
 // Next Page Widget
 class NextMemoryPage extends HookWidget {
-  final String selectedEmoji;
-  final String selectedLabel;
-
   const NextMemoryPage({
     super.key,
     required this.selectedEmoji,
     required this.selectedLabel,
   });
+  final String selectedEmoji;
+  final String selectedLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -375,7 +374,6 @@ class NextMemoryPage extends HookWidget {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: Colors.grey[700]!,
-                          width: 1,
                         ),
                       ),
                       child: TextField(
@@ -402,7 +400,7 @@ class NextMemoryPage extends HookWidget {
                   const SizedBox(height: 20),
 
                   // Save Memory Button
-                  Container(
+                  SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
@@ -411,7 +409,7 @@ class NextMemoryPage extends HookWidget {
                         if (textController.text.isNotEmpty) {
                           // Show success message or navigate
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('Memory saved! 😊'),
                               backgroundColor: Colors.green,
                               behavior: SnackBarBehavior.floating,

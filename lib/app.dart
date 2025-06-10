@@ -1,10 +1,6 @@
 // lib/app.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import 'package:innerverse/core/di/injection_container.dart' as di;
 import 'package:innerverse/core/navigation/app_router.dart';
 import 'package:innerverse/core/themes/app_theme.dart';
 

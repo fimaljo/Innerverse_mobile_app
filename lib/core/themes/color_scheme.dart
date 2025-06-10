@@ -39,14 +39,11 @@ class AppColorScheme {
 
     surface: Color(0xFFFFFBFF),
     onSurface: Color(0xFF1C1B1E),
-    surfaceVariant: Color(0xFFF3F0F7),
+    surfaceContainerHighest: Color(0xFFF3F0F7),
     onSurfaceVariant: Color(0xFF46454A),
 
     outline: Color(0xFF77757A),
     outlineVariant: Color(0xFFC7C5CA),
-
-    background: Color(0xFFFFFBFF),
-    onBackground: Color(0xFF1C1B1E),
 
     inverseSurface: Color(0xFF313033),
     onInverseSurface: Color(0xFFF4F0F7),
@@ -81,14 +78,11 @@ class AppColorScheme {
 
     surface: Color(0xFF121212),
     onSurface: Color(0xFFE5E1E6),
-    surfaceVariant: Color(0xFF46454A),
+    surfaceContainerHighest: Color(0xFF46454A),
     onSurfaceVariant: Color(0xFFC7C5CA),
 
     outline: Color(0xFF918F94),
     outlineVariant: Color(0xFF46454A),
-
-    background: Color(0xFF0F0F0F),
-    onBackground: Color(0xFFE5E1E6),
 
     inverseSurface: Color(0xFFE5E1E6),
     onInverseSurface: Color(0xFF313033),
