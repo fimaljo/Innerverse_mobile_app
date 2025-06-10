@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:innerverse/core/navigation/route_constants.dart';
 import 'package:innerverse/features/home/presentation/pages/home_page.dart';
+import 'package:innerverse/features/memory/presentation/pages/create_memory_page.dart';
 
 class AppRouter {
   static final GoRouter _router = GoRouter(
@@ -56,6 +57,12 @@ class AppRouter {
         path: RouteConstants.home,
         name: RouteConstants.homeName,
         builder: (context, state) => const HomePage(),
+      ),
+
+      GoRoute(
+        path: RouteConstants.createMemory,
+        name: RouteConstants.createMemoryName,
+        builder: (context, state) => const CreateMemoryPage(),
       ),
 
       // Authentication Routes
@@ -146,7 +153,7 @@ class _SplashPageState extends State<SplashPage> {
     super.initState();
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        context.go(RouteConstants.home);
+        context.pushNamed(RouteConstants.createMemoryName);
       }
     });
   }

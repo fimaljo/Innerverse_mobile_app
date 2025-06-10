@@ -18,6 +18,7 @@ class RouteConstants {
   // Memories
   static const memories = '/memories';
   static const memoriesName = 'memories';
+  static const createMemory = '/create-memory'; // New path for create memory
   static const createMemoryName = 'createMemory';
   static const memoryDetailName = 'memoryDetail';
 
