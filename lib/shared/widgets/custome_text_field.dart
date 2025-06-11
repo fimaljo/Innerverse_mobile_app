@@ -116,10 +116,11 @@ class _CustomeTextFieldState extends State<CustomeTextField> {
                   TextStyle(
                     fontSize: widget.fontSize,
                     fontWeight: widget.fontWeight,
-                    color: defaultTextColor,
+                    color: widget.textColor ?? defaultTextColor,
                     height: 1.6,
                   ),
               decoration: InputDecoration(
+                fillColor: Colors.transparent,
                 hintText: widget.hintText,
                 hintStyle:
                     widget.hintStyle ??

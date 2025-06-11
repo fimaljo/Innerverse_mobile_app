@@ -10,15 +10,15 @@ class AppTextTheme {
   static TextTheme get darkTextTheme => _baseTextTheme(Colors.white70);
 
   static TextTheme _baseTextTheme(Color textColor) {
-    return GoogleFonts.interTextTheme().copyWith(
+    return GoogleFonts.urbanistTextTheme().copyWith(
       // Display Styles
-      displayLarge: GoogleFonts.inter(
+      displayLarge: GoogleFonts.urbanist(
         fontSize: 57.sp,
         fontWeight: FontWeight.w400,
         letterSpacing: -0.25,
         color: textColor,
       ),
-      displayMedium: GoogleFonts.inter(
+      displayMedium: GoogleFonts.urbanist(
         fontSize: 45.sp,
         fontWeight: FontWeight.w400,
         letterSpacing: 0,
@@ -32,19 +32,19 @@ class AppTextTheme {
       ),
 
       // Headline Styles
-      headlineLarge: GoogleFonts.inter(
+      headlineLarge: GoogleFonts.urbanist(
         fontSize: 32.sp,
         fontWeight: FontWeight.w600,
         letterSpacing: 0,
         color: textColor,
       ),
-      headlineMedium: GoogleFonts.inter(
+      headlineMedium: GoogleFonts.urbanist(
         fontSize: 28.sp,
         fontWeight: FontWeight.w600,
         letterSpacing: 0,
         color: textColor,
       ),
-      headlineSmall: GoogleFonts.inter(
+      headlineSmall: GoogleFonts.urbanist(
         fontSize: 24.sp,
         fontWeight: FontWeight.w600,
         letterSpacing: 0,
@@ -52,19 +52,19 @@ class AppTextTheme {
       ),
 
       // Title Styles
-      titleLarge: GoogleFonts.inter(
+      titleLarge: GoogleFonts.urbanist(
         fontSize: 22.sp,
         fontWeight: FontWeight.w600,
         letterSpacing: 0,
         color: textColor,
       ),
-      titleMedium: GoogleFonts.inter(
+      titleMedium: GoogleFonts.urbanist(
         fontSize: 16.sp,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.15,
         color: textColor,
       ),
-      titleSmall: GoogleFonts.inter(
+      titleSmall: GoogleFonts.urbanist(
         fontSize: 14.sp,
         fontWeight: FontWeight.w600,
         letterSpacing: 0.1,
@@ -72,19 +72,19 @@ class AppTextTheme {
       ),
 
       // Label Styles
-      labelLarge: GoogleFonts.inter(
+      labelLarge: GoogleFonts.urbanist(
         fontSize: 14.sp,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.1,
         color: textColor,
       ),
-      labelMedium: GoogleFonts.inter(
+      labelMedium: GoogleFonts.urbanist(
         fontSize: 12.sp,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.5,
         color: textColor,
       ),
-      labelSmall: GoogleFonts.inter(
+      labelSmall: GoogleFonts.urbanist(
         fontSize: 11.sp,
         fontWeight: FontWeight.w500,
         letterSpacing: 0.5,
@@ -92,19 +92,19 @@ class AppTextTheme {
       ),
 
       // Body Styles
-      bodyLarge: GoogleFonts.inter(
+      bodyLarge: GoogleFonts.urbanist(
         fontSize: 16.sp,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.5,
         color: textColor,
       ),
-      bodyMedium: GoogleFonts.inter(
+      bodyMedium: GoogleFonts.urbanist(
         fontSize: 14.sp,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.25,
         color: textColor,
       ),
-      bodySmall: GoogleFonts.inter(
+      bodySmall: GoogleFonts.urbanist(
         fontSize: 12.sp,
         fontWeight: FontWeight.w400,
         letterSpacing: 0.4,
@@ -113,3 +113,4 @@ class AppTextTheme {
     );
   }
 }
+//unbounded

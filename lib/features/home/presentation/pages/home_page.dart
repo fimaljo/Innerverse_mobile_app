@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:innerverse/core/navigation/route_constants.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -39,8 +41,7 @@ class HomePage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Example: Navigate to create memory page
-          // context.go(RouteConstants.createMemory);
+          context.pushNamed(RouteConstants.createMemoryName);
         },
         icon: const Icon(Icons.add),
         label: Text(
