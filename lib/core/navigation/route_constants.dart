@@ -5,33 +5,14 @@ class RouteConstants {
   static const splash = '/splash';
   static const splashName = 'splash';
 
-  // Auth
-  static const login = '/login';
-  static const loginName = 'login';
-  static const register = '/register';
-  static const registerName = 'register';
-
   // Home
   static const home = '/home';
   static const homeName = 'home';
 
   // Memories
-  static const memories = '/memories';
-  static const memoriesName = 'memories';
-  static const createMemory = '/create-memory'; // New path for create memory
-  static const createMemoryName = 'createMemory';
-  static const memoryDetailName = 'memoryDetail';
 
-  // Worlds
-  static const worlds = '/worlds';
-  static const worldsName = 'worlds';
-  static const worldDetailName = 'worldDetail';
-
-  // Profile
-  static const profile = '/profile';
-  static const profileName = 'profile';
-
-  // Settings
-  static const settings = '/settings';
-  static const settingsName = 'settings';
+  static const selectMemoryType = '/select-memory-type';
+  static const selectMemoryTypeName = 'selectMemory';
+  static const addMemoryDetail = '/memory-detail';
+  static const addMemoryDetailName = 'memoryDetail';
 }

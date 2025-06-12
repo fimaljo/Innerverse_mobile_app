@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 class GradientIconButton extends StatefulWidget {
   const GradientIconButton({
-    super.key,
     required this.icon,
     required this.onTap,
+    super.key,
     this.size = 50,
     this.gradientColors = const [Colors.purple, Colors.blue],
     this.iconColor = Colors.white,
@@ -22,7 +22,7 @@ class GradientIconButton extends StatefulWidget {
 
 class _GradientIconButtonState extends State<GradientIconButton>
     with SingleTickerProviderStateMixin {
-  double _scale = 1.0;
+  double _scale = 1;
 
   void _onTapDown(_) {
     setState(() {

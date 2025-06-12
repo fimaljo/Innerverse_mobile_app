@@ -1,9 +1,9 @@
 // lib/main.dart
+import 'package:device_preview/device_preview.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
 import 'package:innerverse/app.dart';
 import 'package:innerverse/core/di/injection_container.dart' as di;
 import 'package:innerverse/core/utils/app_bloc_observer.dart';
@@ -37,5 +37,13 @@ void main() async {
     ),
   );
 
-  runApp(const InnerverseApp());
+  runApp(
+    const InnerverseApp(),
+  );
 }
+
+//  runApp(
+//     DevicePreview(
+//       builder: (context) => const InnerverseApp(), // Wrap your app
+//     ),
+//   );

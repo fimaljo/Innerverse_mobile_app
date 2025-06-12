@@ -4,8 +4,8 @@ enum ButtonCornerSide { left, right, none, all }
 
 class AppPrimaryButton extends StatefulWidget {
   const AppPrimaryButton({
-    super.key,
     required this.onTap,
+    super.key,
     this.child,
     this.height = 48,
     this.minWidth = 100,
@@ -35,7 +35,7 @@ class AppPrimaryButton extends StatefulWidget {
 }
 
 class _AppPrimaryButtonState extends State<AppPrimaryButton> {
-  double _scale = 1.0;
+  double _scale = 1;
 
   void _onTapDown(_) {
     if (widget.enableShrinkEffect) {
@@ -96,14 +96,6 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton> {
               end: Alignment.bottomRight,
             ),
             borderRadius: _getBorderRadius(),
-            boxShadow: [
-              if (_scale == 1.0)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  offset: const Offset(0, 4),
-                  blurRadius: 6,
-                ),
-            ],
           ),
           child: Center(
             child: widget.isLoading
@@ -117,7 +109,7 @@ class _AppPrimaryButtonState extends State<AppPrimaryButton> {
                   )
                 : widget.child ??
                       const Text(
-                        "Next",
+                        'Next',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,

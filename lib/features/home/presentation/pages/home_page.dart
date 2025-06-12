@@ -41,7 +41,7 @@ class HomePage extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          context.pushNamed(RouteConstants.createMemoryName);
+          context.pushNamed(RouteConstants.selectMemoryTypeName);
         },
         icon: const Icon(Icons.add),
         label: Text(
