@@ -1,5 +1,4 @@
 // Next Page Widget
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -7,7 +6,6 @@ import 'package:innerverse/features/memory/domain/entities/emoji_option.dart';
 import 'package:innerverse/shared/buttons/app_primary_button.dart';
 import 'package:innerverse/shared/buttons/rounded_icon_button.dart';
 import 'package:innerverse/shared/widgets/custome_text_field.dart';
-import 'package:rive/rive.dart';
 
 class AddMemoryDetailPage extends HookWidget {
   const AddMemoryDetailPage({
