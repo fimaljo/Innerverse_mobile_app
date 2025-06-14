@@ -61,6 +61,8 @@ dependencies:
   animated_background: ^2.0.0
   flutter_arc_text: ^0.6.0
   flutter_keyboard_visibility: ^6.0.0
+  emoji_picker_flutter: ^4.3.0
+  flutter_iconpicker: ^3.3.3
 
 dev_dependencies:
   flutter_test:

@@ -5,7 +5,9 @@ import 'dart:ui';
 import 'package:animated_background/animated_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:flutter_iconpicker/flutter_iconpicker.dart'
+    as FlutterIconPicker;
+import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:innerverse/core/constants/emoji_options.dart';
@@ -27,15 +29,22 @@ class SelectMemoryTypePage extends StatefulWidget {
 class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
     with TickerProviderStateMixin {
   late PageController pageController;
+  late PageController emojiPageController;
   late AnimationController animationController;
   late PageController bottomPageController;
   late CurvedAnimation bounceAnimation;
   int selectedIndex = 0;
+  int bottomPageIndex = 0;
   double speed = 5;
+  List<WorldIcon> worldIcons = [
+    WorldIcon(name: 'Family', icon: Icons.family_restroom),
+    WorldIcon(name: 'Relation Ship', icon: Icons.heat_pump_rounded),
+  ];
 
   @override
   void initState() {
     super.initState();
+    emojiPageController = PageController();
     pageController = PageController();
     bottomPageController = PageController();
     animationController = AnimationController(
@@ -50,14 +59,30 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       onEmojiSelected(0);
     });
+
+    bottomPageController.addListener(() {
+      final newIndex = bottomPageController.page?.round() ?? 0;
+      if (newIndex != bottomPageIndex) {
+        setState(() {
+          bottomPageIndex = newIndex;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    emojiPageController.dispose();
     pageController.dispose();
     bottomPageController.dispose();
     animationController.dispose();
     super.dispose();
+  }
+
+  void _handleWorldIconsChanged(List<WorldIcon> data) {
+    setState(() {
+      worldIcons = data;
+    });
   }
 
   void onEmojiSelected(int index, {bool fromBottom = false}) {
@@ -81,10 +106,8 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
     final colorScheme = theme.colorScheme;
 
     final selectedEmoji = emojiOptions[selectedIndex];
-    // Assuming `speed` is from 0.0 to 10.0
     final normalized = (speed / 10).clamp(0.0, 1.0);
 
-    // Particle properties
     final minSpeed = lerpDouble(0, 100, normalized)!;
     final maxSpeed = lerpDouble(0, 200, normalized)!;
     final particleCount = lerpDouble(0, 300, normalized)!.toInt();
@@ -102,7 +125,9 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
             child: Visibility(
               visible: !isKeyboardVisible,
               child: Container(
-                height: MediaQuery.of(context).size.height * 0.6,
+                height: bottomPageIndex != 2
+                    ? MediaQuery.of(context).size.height * 0.6
+                    : MediaQuery.of(context).size.height * 0.4,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -150,31 +175,67 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                               ),
                             ),
                           ),
-                          Text(
-                            selectedEmoji.label,
-                            textAlign: TextAlign.center,
-                            style: textTheme.headlineLarge,
-                          ),
-                          Expanded(
-                            child: PageView.builder(
-                              controller: pageController,
-                              itemCount: emojiOptions.length,
-                              onPageChanged: onEmojiSelected,
-                              itemBuilder: (context, index) {
-                                final isSelected = index == selectedIndex;
-                                return ScaleTransition(
-                                  scale: isSelected
-                                      ? bounceAnimation
-                                      : const AlwaysStoppedAnimation(1),
-                                  child: rive.RiveAnimation.asset(
-                                    'assets/rive/innerverse3.riv',
-                                    artboard: emojiOptions[index].id,
-                                    fit: BoxFit.cover,
-                                  ),
-                                );
-                              },
+                          if (bottomPageIndex != 2) ...[
+                            Text(
+                              selectedEmoji.label,
+                              textAlign: TextAlign.center,
+                              style: textTheme.headlineLarge,
                             ),
-                          ),
+                            Expanded(
+                              child: PageView.builder(
+                                controller: pageController,
+                                itemCount: emojiOptions.length,
+                                onPageChanged: onEmojiSelected,
+                                itemBuilder: (context, index) {
+                                  final isSelected = index == selectedIndex;
+                                  return ScaleTransition(
+                                    scale: isSelected
+                                        ? bounceAnimation
+                                        : const AlwaysStoppedAnimation(1),
+                                    child: rive.RiveAnimation.asset(
+                                      'assets/rive/innerverse3.riv',
+                                      artboard: emojiOptions[index].id,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ] else ...[
+                            Expanded(
+                              child: PageView.builder(
+                                controller: emojiPageController,
+                                itemCount: worldIcons.length,
+                                onPageChanged: onEmojiSelected,
+                                itemBuilder: (context, index) {
+                                  final isSelected = index == selectedIndex;
+                                  return ScaleTransition(
+                                    scale: isSelected
+                                        ? bounceAnimation
+                                        : const AlwaysStoppedAnimation(1),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          worldIcons[index].name,
+                                          textAlign: TextAlign.center,
+                                          style: textTheme.headlineLarge
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                        ),
+                                        Icon(
+                                          worldIcons[index].icon,
+                                          size: 50,
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -191,7 +252,7 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                 _MemoryTypeStep(
                   speed: speed,
                   selectedIndex: selectedIndex,
-                  selectedEmoji: emojiOptions[selectedIndex],
+                  selectedEmoji: selectedEmoji,
                   onSpeedChanged: (val) {
                     setState(() {
                       speed = val;
@@ -215,14 +276,355 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                   },
                   selectedData: selectedEmoji,
                   onSubmit: () {
-                    // TODO: Handle final submit logic here
-                    print('Memory submitted!');
+                    bottomPageController.nextPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                ),
+                _WorldTypeStep(
+                  onWorldIconsChanged: _handleWorldIconsChanged,
+
+                  onBack: () {
+                    FocusScope.of(context).unfocus();
+                    bottomPageController.previousPage(
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  selectedData: selectedEmoji,
+                  onSubmit: () {
+                    bottomPageController.nextPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
                   },
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class WorldIcon {
+  final String name;
+  final IconData icon;
+
+  WorldIcon({
+    required this.name,
+    required this.icon,
+  });
+}
+
+class _WorldTypeStep extends StatefulWidget {
+  const _WorldTypeStep({
+    required this.onBack,
+    required this.onSubmit,
+    required this.selectedData,
+    required this.onWorldIconsChanged,
+  });
+
+  final VoidCallback onBack;
+  final VoidCallback onSubmit;
+  final EmojiOption selectedData;
+  final ValueChanged<List<WorldIcon>> onWorldIconsChanged;
+
+  @override
+  State<_WorldTypeStep> createState() => _WorldTypeStepState();
+}
+
+class _WorldTypeStepState extends State<_WorldTypeStep> {
+  final List<WorldIcon> worldIcons = [
+    WorldIcon(name: 'Family', icon: Icons.family_restroom),
+    WorldIcon(name: 'Relation Ship', icon: Icons.heat_pump_rounded),
+  ];
+
+  bool isAdding = false;
+  IconData? pickedIcon;
+  final TextEditingController nameController = TextEditingController();
+
+  void _pickIcon() async {
+    IconData? icon = await FlutterIconPicker.showIconPicker(
+      context,
+      iconPackModes: [IconPack.material],
+    );
+    if (icon != null) {
+      setState(() {
+        pickedIcon = icon;
+      });
+    }
+  }
+
+  void _addWorldSymbol() {
+    final name = nameController.text.trim();
+    if (name.isNotEmpty && pickedIcon != null) {
+      setState(() {
+        worldIcons.add(WorldIcon(name: name, icon: pickedIcon!));
+        nameController.clear();
+        pickedIcon = null;
+        isAdding = false;
+      });
+      widget.onWorldIconsChanged(worldIcons);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final allIcons = [
+      Icons.star,
+      Icons.favorite,
+      Icons.home,
+      Icons.person,
+      Icons.music_note,
+      Icons.ac_unit,
+      Icons.cake,
+      Icons.beach_access,
+      Icons.book,
+      Icons.camera_alt,
+      Icons.flight,
+      Icons.flag,
+      Icons.lightbulb,
+      Icons.mood,
+      Icons.phone,
+    ];
+
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+    return Scaffold(
+      bottomNavigationBar: !isAdding
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                AppPrimaryButton(
+                  onTap: widget.onBack,
+                  height: 80,
+                  maxWidth: 70,
+                  minWidth: 70,
+                  cornerSide: ButtonCornerSide.left,
+                  gradientColors: widget.selectedData.gradient,
+                  child: const Icon(
+                    Icons.arrow_back_ios_rounded,
+                    color: Colors.white,
+                  ),
+                ),
+                AppPrimaryButton(
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                    widget.onSubmit();
+                  },
+                  height: 80,
+                  maxWidth: 70,
+                  minWidth: 70,
+                  cornerSide: ButtonCornerSide.right,
+                  gradientColors: widget.selectedData.gradient,
+                  child: const Icon(
+                    Icons.check,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            )
+          : const SizedBox.shrink(),
+
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 20),
+              child: Text(
+                isAdding
+                    ? 'Create Your World Symbol'
+                    : 'Pick Your World Symbols',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            if (!isAdding) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 20,
+                ),
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    ...worldIcons.map((item) {
+                      return SizedBox(
+                        width:
+                            MediaQuery.of(context).size.width / 4 -
+                            24, // 4 per row with spacing
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.grey[200],
+                              ),
+                              child: Icon(
+                                item.icon,
+                                size: 28,
+                                color: Colors.grey[800],
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              item.name,
+                              style: const TextStyle(fontSize: 11),
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                    GestureDetector(
+                      onTap: () => setState(() => isAdding = true),
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width / 4 - 24,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: widget.selectedData.gradient,
+                                ),
+                              ),
+                              child: const Icon(Icons.add, color: Colors.white),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text('Add', style: TextStyle(fontSize: 11)),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            if (isAdding) ...[
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: CustomeTextField(
+                  controller: nameController,
+                  hintText: 'Add World Name...',
+                  fontSize: 16,
+                  validator: (p0) {
+                    return null;
+                  },
+                  textStyle: textTheme.titleMedium,
+                  animateHint: true,
+                  hintColor: colorScheme.outlineVariant,
+                  textColor: Colors.black,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  'Choose an Icon',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: allIcons.map((icon) {
+                    final isSelected = pickedIcon == icon;
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          pickedIcon = icon;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          // color: isSelected
+                          //     ? widget.selectedData.gradient.last
+                          //     : Colors.grey[200],
+                          color: Colors.grey[200],
+                          border: isSelected
+                              ? Border.all(
+                                  color: colorScheme.onPrimaryContainer,
+                                )
+                              : null,
+                        ),
+                        child: Icon(
+                          icon,
+                          size: 28,
+                          // color: isSelected
+                          //     ? widget.selectedData.gradient.first
+                          //     : Colors.grey,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  children: [
+                    AppPrimaryButton(
+                      onTap: _addWorldSymbol,
+                      height: 50,
+                      maxWidth: 50,
+                      minWidth: 50,
+                      //  cornerSide: ButtonCornerSide.left,
+                      gradientColors: widget.selectedData.gradient,
+                      child: const Icon(
+                        Icons.check,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    AppPrimaryButton(
+                      onTap: () {
+                        setState(() {
+                          isAdding = false;
+                          nameController.clear();
+                          pickedIcon = null;
+                        });
+                      },
+                      height: 50,
+                      maxWidth: 50,
+                      minWidth: 50,
+                      // cornerSide: ButtonCornerSide.left,
+                      gradientColors: widget.selectedData.gradient,
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -732,8 +1134,9 @@ class GradientArcPainter extends CustomPainter {
     final sweepAngle = pi * progress;
 
     // Arc drawing
-    canvas.drawArc(rect, pi, pi, false, bgPaint);
-    canvas.drawArc(rect, pi, sweepAngle, false, fgPaint);
+    canvas
+      ..drawArc(rect, pi, pi, false, bgPaint)
+      ..drawArc(rect, pi, sweepAngle, false, fgPaint);
 
     // Thumb (with shadow)
     final thumbAngle = pi + sweepAngle;
@@ -745,8 +1148,9 @@ class GradientArcPainter extends CustomPainter {
     final thumbPath = Path()
       ..addOval(Rect.fromCircle(center: thumbCenter, radius: thumbRadius));
 
-    canvas.drawShadow(thumbPath, Colors.black.withOpacity(0.4), 4, true);
-    canvas.drawCircle(thumbCenter, thumbRadius, Paint()..color = Colors.white);
+    canvas
+      ..drawShadow(thumbPath, Colors.black.withOpacity(0.4), 4, true)
+      ..drawCircle(thumbCenter, thumbRadius, Paint()..color = Colors.white);
   }
 
   @override
