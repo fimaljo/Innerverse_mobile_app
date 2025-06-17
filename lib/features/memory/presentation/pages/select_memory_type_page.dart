@@ -11,7 +11,6 @@ import 'package:flutter_iconpicker/flutter_iconpicker.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:innerverse/core/constants/emoji_options.dart';
-import 'package:innerverse/core/navigation/route_constants.dart';
 import 'package:innerverse/features/memory/domain/entities/emoji_option.dart';
 import 'package:innerverse/shared/buttons/app_primary_button.dart';
 import 'package:innerverse/shared/buttons/rounded_icon_button.dart'
@@ -126,7 +125,7 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
               visible: !isKeyboardVisible,
               child: Container(
                 height: bottomPageIndex != 2
-                    ? MediaQuery.of(context).size.height * 0.6
+                    ? MediaQuery.of(context).size.height * 0.5
                     : MediaQuery.of(context).size.height * 0.4,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -167,9 +166,7 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                               padding: const EdgeInsets.all(20),
                               child: GradientIconButton(
                                 icon: Icons.close,
-                                onTap: () => context.pushNamed(
-                                  RouteConstants.homeName,
-                                ),
+                                onTap: () => context.pop(),
                                 size: 48,
                                 gradientColors: selectedEmoji.gradient,
                               ),
@@ -192,10 +189,13 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                                     scale: isSelected
                                         ? bounceAnimation
                                         : const AlwaysStoppedAnimation(1),
-                                    child: rive.RiveAnimation.asset(
-                                      'assets/rive/innerverse3.riv',
-                                      artboard: emojiOptions[index].id,
-                                      fit: BoxFit.cover,
+                                    child: Transform.translate(
+                                      offset: const Offset(0, -20),
+                                      child: rive.RiveAnimation.asset(
+                                        'assets/rive/innerverse3.riv',
+                                        artboard: emojiOptions[index].id,
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                                   );
                                 },
@@ -310,13 +310,12 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
 }
 
 class WorldIcon {
-  final String name;
-  final IconData icon;
-
   WorldIcon({
     required this.name,
     required this.icon,
   });
+  final String name;
+  final IconData icon;
 }
 
 class _WorldTypeStep extends StatefulWidget {
@@ -346,8 +345,8 @@ class _WorldTypeStepState extends State<_WorldTypeStep> {
   IconData? pickedIcon;
   final TextEditingController nameController = TextEditingController();
 
-  void _pickIcon() async {
-    IconData? icon = await FlutterIconPicker.showIconPicker(
+  Future<void> _pickIcon() async {
+    final icon = await FlutterIconPicker.showIconPicker(
       context,
       iconPackModes: [IconPack.material],
     );
@@ -826,8 +825,8 @@ class _TextFieldStepState extends State<_TextFieldStep> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          selectedDate != null
-                              ? '${selectedDate!.day}/${selectedDate!.month}/${selectedDate!.year}'
+                          (selectedDate ?? DateTime.now()) != null
+                              ? '${(selectedDate ?? DateTime.now()).day}/${(selectedDate ?? DateTime.now()).month}/${(selectedDate ?? DateTime.now()).year}'
                               : 'Pick a date',
                           style: TextStyle(color: colorScheme.onSurfaceVariant),
                         ),
@@ -835,7 +834,6 @@ class _TextFieldStepState extends State<_TextFieldStep> {
                     ),
                   ),
                   const SizedBox(width: 12),
-
                   // ⏰ Time Picker
                   InkWell(
                     onTap: pickTime,
@@ -849,9 +847,7 @@ class _TextFieldStepState extends State<_TextFieldStep> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          selectedTime != null
-                              ? selectedTime!.format(context)
-                              : 'Pick a time',
+                          (selectedTime ?? TimeOfDay.now()).format(context),
                           style: TextStyle(color: colorScheme.onSurfaceVariant),
                         ),
                       ],

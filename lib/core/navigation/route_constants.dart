@@ -15,4 +15,14 @@ class RouteConstants {
   static const selectMemoryTypeName = 'selectMemory';
   static const addMemoryDetail = '/memory-detail';
   static const addMemoryDetailName = 'memoryDetail';
+
+  static const String entries = '/entries';
+  static const String worldTree = '/world';
+  static const String analytics = '/analytics';
+
+  // Route names
+
+  static const String entriesName = 'entries';
+  static const String worldTreeName = 'world';
+  static const String analyticsName = 'analytics';
 }
