@@ -1,6 +1,7 @@
 // lib/core/navigation/app_router.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:innerverse/core/navigation/route_constants.dart';
 import 'package:innerverse/core/navigation/route_tracker.dart';
@@ -9,7 +10,6 @@ import 'package:innerverse/features/entries/presentation/page/entries_page.dart'
 import 'package:innerverse/features/home/presentation/pages/home_page.dart';
 import 'package:innerverse/features/memory/domain/entities/emoji_option.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_bloc.dart';
-import 'package:innerverse/features/memory/presentation/pages/add_memory_detail_page.dart';
 import 'package:innerverse/features/memory/presentation/pages/select_memory_type_page.dart';
 import 'package:innerverse/features/navigation/domain/entities/navigation_tab_entities.dart';
 import 'package:innerverse/features/navigation/presentation/bloc/navigation_bloc.dart';
@@ -41,7 +41,10 @@ class AppRouter {
             GoRoute(
               path: RouteConstants.entries,
               name: RouteConstants.entriesName,
-              builder: (context, state) => const EntriesPage(),
+              builder: (context, state) => BlocProvider(
+                create: (_) => GetIt.I<MemoryBloc>(),
+                child: const EntriesPage(),
+              ),
             ),
             GoRoute(
               path: RouteConstants.worldTree,
@@ -62,18 +65,10 @@ class AppRouter {
             return MaterialPage(
               key: state.pageKey,
               child: BlocProvider(
-                create: (_) => MemoryBloc(),
+                create: (_) => GetIt.I<MemoryBloc>(),
                 child: const SelectMemoryTypePage(),
               ),
             );
-          },
-        ),
-        GoRoute(
-          path: RouteConstants.addMemoryDetail,
-          name: RouteConstants.addMemoryDetailName,
-          builder: (context, state) {
-            final selectedData = state.extra! as EmojiOption;
-            return AddMemoryDetailPage(selectedData: selectedData);
           },
         ),
       ],
@@ -95,7 +90,7 @@ class _SplashPageState extends State<SplashPage> {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         context.read<NavigationBloc>().add(
-          const NavigationTabChanged(NavigationTab.analytics),
+          const NavigationTabChanged(NavigationTab.worlds),
         );
       }
     });

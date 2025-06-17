@@ -7,10 +7,18 @@ import 'package:innerverse/core/di/injection_container.dart' as di;
 import 'package:innerverse/core/navigation/app_router.dart';
 import 'package:innerverse/core/navigation/route_tracker.dart';
 import 'package:innerverse/core/utils/app_bloc_observer.dart';
+import 'package:innerverse/core/init/hive_init.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
+
+  // Initialize Hive first
+  final appDocumentDir = await getApplicationDocumentsDirectory();
+  await Hive.initFlutter(appDocumentDir.path);
+  await HiveInit.init();
+
+  // Then set up routing and dependency injection
   final routeTracker = RouteTracker();
   final router = AppRouter.createRouter(routeTracker);
   await di.setupServiceLocator(router, routeTracker);

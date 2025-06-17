@@ -13,8 +13,6 @@ class RouteConstants {
 
   static const selectMemoryType = '/select-memory-type';
   static const selectMemoryTypeName = 'selectMemory';
-  static const addMemoryDetail = '/memory-detail';
-  static const addMemoryDetailName = 'memoryDetail';
 
   static const String entries = '/entries';
   static const String worldTree = '/world';

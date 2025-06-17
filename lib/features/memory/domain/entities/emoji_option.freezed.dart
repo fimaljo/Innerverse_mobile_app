@@ -16,7 +16,7 @@ final _privateConstructorUsedError = UnsupportedError(
 
 /// @nodoc
 mixin _$EmojiOption {
-  String get id => throw _privateConstructorUsedError;
+  String get riveAsset => throw _privateConstructorUsedError;
   String get label => throw _privateConstructorUsedError;
   List<Color> get gradient => throw _privateConstructorUsedError;
   Color get particleColor => throw _privateConstructorUsedError;
@@ -35,7 +35,10 @@ abstract class $EmojiOptionCopyWith<$Res> {
       _$EmojiOptionCopyWithImpl<$Res, EmojiOption>;
   @useResult
   $Res call(
-      {String id, String label, List<Color> gradient, Color particleColor});
+      {String riveAsset,
+      String label,
+      List<Color> gradient,
+      Color particleColor});
 }
 
 /// @nodoc
@@ -53,15 +56,15 @@ class _$EmojiOptionCopyWithImpl<$Res, $Val extends EmojiOption>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
+    Object? riveAsset = null,
     Object? label = null,
     Object? gradient = null,
     Object? particleColor = null,
   }) {
     return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
+      riveAsset: null == riveAsset
+          ? _value.riveAsset
+          : riveAsset // ignore: cast_nullable_to_non_nullable
               as String,
       label: null == label
           ? _value.label
@@ -88,7 +91,10 @@ abstract class _$$EmojiOptionImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {String id, String label, List<Color> gradient, Color particleColor});
+      {String riveAsset,
+      String label,
+      List<Color> gradient,
+      Color particleColor});
 }
 
 /// @nodoc
@@ -104,15 +110,15 @@ class __$$EmojiOptionImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
-    Object? id = null,
+    Object? riveAsset = null,
     Object? label = null,
     Object? gradient = null,
     Object? particleColor = null,
   }) {
     return _then(_$EmojiOptionImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
+      riveAsset: null == riveAsset
+          ? _value.riveAsset
+          : riveAsset // ignore: cast_nullable_to_non_nullable
               as String,
       label: null == label
           ? _value.label
@@ -134,14 +140,14 @@ class __$$EmojiOptionImplCopyWithImpl<$Res>
 
 class _$EmojiOptionImpl implements _EmojiOption {
   const _$EmojiOptionImpl(
-      {required this.id,
+      {required this.riveAsset,
       required this.label,
       required final List<Color> gradient,
       required this.particleColor})
       : _gradient = gradient;
 
   @override
-  final String id;
+  final String riveAsset;
   @override
   final String label;
   final List<Color> _gradient;
@@ -157,7 +163,7 @@ class _$EmojiOptionImpl implements _EmojiOption {
 
   @override
   String toString() {
-    return 'EmojiOption(id: $id, label: $label, gradient: $gradient, particleColor: $particleColor)';
+    return 'EmojiOption(riveAsset: $riveAsset, label: $label, gradient: $gradient, particleColor: $particleColor)';
   }
 
   @override
@@ -165,7 +171,8 @@ class _$EmojiOptionImpl implements _EmojiOption {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$EmojiOptionImpl &&
-            (identical(other.id, id) || other.id == id) &&
+            (identical(other.riveAsset, riveAsset) ||
+                other.riveAsset == riveAsset) &&
             (identical(other.label, label) || other.label == label) &&
             const DeepCollectionEquality().equals(other._gradient, _gradient) &&
             (identical(other.particleColor, particleColor) ||
@@ -173,7 +180,7 @@ class _$EmojiOptionImpl implements _EmojiOption {
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, id, label,
+  int get hashCode => Object.hash(runtimeType, riveAsset, label,
       const DeepCollectionEquality().hash(_gradient), particleColor);
 
   /// Create a copy of EmojiOption
@@ -187,13 +194,13 @@ class _$EmojiOptionImpl implements _EmojiOption {
 
 abstract class _EmojiOption implements EmojiOption {
   const factory _EmojiOption(
-      {required final String id,
+      {required final String riveAsset,
       required final String label,
       required final List<Color> gradient,
       required final Color particleColor}) = _$EmojiOptionImpl;
 
   @override
-  String get id;
+  String get riveAsset;
   @override
   String get label;
   @override

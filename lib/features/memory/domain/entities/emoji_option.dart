@@ -6,7 +6,7 @@ part 'emoji_option.freezed.dart';
 @freezed
 class EmojiOption with _$EmojiOption {
   const factory EmojiOption({
-    required String id,
+    required String riveAsset,
     required String label,
     required List<Color> gradient,
     required Color particleColor,

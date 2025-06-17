@@ -1,34 +1,312 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:innerverse/features/memory/domain/usecases/add_memory_usecase.dart';
+import 'package:innerverse/features/memory/domain/usecases/base_usecase.dart';
+import 'package:innerverse/features/memory/domain/usecases/clear_all_memories_usecase.dart';
+import 'package:innerverse/features/memory/domain/usecases/delete_memory_usecase.dart';
+import 'package:innerverse/features/memory/domain/usecases/get_all_memories_usecase.dart';
+import 'package:innerverse/features/memory/domain/usecases/get_memories_by_date_range_usecase.dart';
+import 'package:innerverse/features/memory/domain/usecases/update_memory_usecase.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_event.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_state.dart';
 
 class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
-  MemoryBloc() : super(const MemoryState()) {
-    on<LoadMemorys>(_onLoadMemorys);
-    on<SelectMemory>(_onSelectMemory);
+  MemoryBloc({
+    required GetAllMemoriesUseCase getAllMemoriesUseCase,
+    required AddMemoryUseCase addMemoryUseCase,
+    required UpdateMemoryUseCase updateMemoryUseCase,
+    required DeleteMemoryUseCase deleteMemoryUseCase,
+    required GetMemoriesByDateRangeUseCase getMemoriesByDateRangeUseCase,
+    required ClearAllMemoriesUseCase clearAllMemoriesUseCase,
+  }) : _getAllMemoriesUseCase = getAllMemoriesUseCase,
+       _addMemoryUseCase = addMemoryUseCase,
+       _updateMemoryUseCase = updateMemoryUseCase,
+       _deleteMemoryUseCase = deleteMemoryUseCase,
+       _getMemoriesByDateRangeUseCase = getMemoriesByDateRangeUseCase,
+       _clearAllMemoriesUseCase = clearAllMemoriesUseCase,
+       super(const MemoryState()) {
+    on<LoadMemories>(_onLoadMemories);
+    on<AddMemory>(_onAddMemory);
+    on<UpdateMemory>(_onUpdateMemory);
+    on<DeleteMemory>(_onDeleteMemory);
+    on<GetMemoriesByDateRange>(_onGetMemoriesByDateRange);
+    on<ClearAllMemories>(_onClearAllMemories);
   }
 
-  Future<void> _onLoadMemorys(
-    LoadMemorys event,
+  final GetAllMemoriesUseCase _getAllMemoriesUseCase;
+  final AddMemoryUseCase _addMemoryUseCase;
+  final UpdateMemoryUseCase _updateMemoryUseCase;
+  final DeleteMemoryUseCase _deleteMemoryUseCase;
+  final GetMemoriesByDateRangeUseCase _getMemoriesByDateRangeUseCase;
+  final ClearAllMemoriesUseCase _clearAllMemoriesUseCase;
+
+  Future<void> _onLoadMemories(
+    LoadMemories event,
     Emitter<MemoryState> emit,
   ) async {
     emit(state.copyWith(isLoading: true));
-
     try {
-      // Fake data - in real app, fetch from usecase/repo
-      await Future.delayed(const Duration(milliseconds: 500));
-      final s = ['Joyful', 'Sad', 'Angry', 'Grateful'];
-
-      emit(state.copyWith(memorys: s, isLoading: false));
-    } catch (e) {
-      emit(state.copyWith(error: e.toString(), isLoading: false));
+      final memoriesResult = await _getAllMemoriesUseCase(const NoParams());
+      if (!emit.isDone) {
+        memoriesResult.fold(
+          (failure) => emit(
+            state.copyWith(
+              error: failure.toString(),
+              isLoading: false,
+            ),
+          ),
+          (memories) => emit(
+            state.copyWith(
+              memories: memories,
+              filteredMemories: memories,
+              isLoading: false,
+            ),
+          ),
+        );
+      }
+    } on Exception catch (e) {
+      if (!emit.isDone) {
+        emit(
+          state.copyWith(
+            error: e.toString(),
+            isLoading: false,
+          ),
+        );
+      }
     }
   }
 
-  void _onSelectMemory(
-    SelectMemory event,
+  Future<void> _onAddMemory(
+    AddMemory event,
     Emitter<MemoryState> emit,
-  ) {
-    emit(state.copyWith(selected: event.type));
+  ) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      final addResult = await _addMemoryUseCase(event.memory);
+      if (!emit.isDone) {
+        await addResult.fold(
+          (failure) async {
+            emit(
+              state.copyWith(
+                error: failure.toString(),
+                isLoading: false,
+              ),
+            );
+          },
+          (_) async {
+            final memoriesResult = await _getAllMemoriesUseCase(
+              const NoParams(),
+            );
+            if (!emit.isDone) {
+              memoriesResult.fold(
+                (failure) => emit(
+                  state.copyWith(
+                    error: failure.toString(),
+                    isLoading: false,
+                  ),
+                ),
+                (memories) => emit(
+                  state.copyWith(
+                    memories: memories,
+                    filteredMemories: memories,
+                    isLoading: false,
+                  ),
+                ),
+              );
+            }
+          },
+        );
+      }
+    } on Exception catch (e) {
+      if (!emit.isDone) {
+        emit(
+          state.copyWith(
+            error: e.toString(),
+            isLoading: false,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _onUpdateMemory(
+    UpdateMemory event,
+    Emitter<MemoryState> emit,
+  ) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      final updateResult = await _updateMemoryUseCase(event.memory);
+      if (!emit.isDone) {
+        await updateResult.fold(
+          (failure) async {
+            emit(
+              state.copyWith(
+                error: failure.toString(),
+                isLoading: false,
+              ),
+            );
+          },
+          (_) async {
+            final memoriesResult = await _getAllMemoriesUseCase(
+              const NoParams(),
+            );
+            if (!emit.isDone) {
+              memoriesResult.fold(
+                (failure) => emit(
+                  state.copyWith(
+                    error: failure.toString(),
+                    isLoading: false,
+                  ),
+                ),
+                (memories) => emit(
+                  state.copyWith(
+                    memories: memories,
+                    filteredMemories: memories,
+                    isLoading: false,
+                  ),
+                ),
+              );
+            }
+          },
+        );
+      }
+    } on Exception catch (e) {
+      if (!emit.isDone) {
+        emit(
+          state.copyWith(
+            error: e.toString(),
+            isLoading: false,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _onDeleteMemory(
+    DeleteMemory event,
+    Emitter<MemoryState> emit,
+  ) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      final deleteResult = await _deleteMemoryUseCase(event.id);
+      if (!emit.isDone) {
+        await deleteResult.fold(
+          (failure) async {
+            emit(
+              state.copyWith(
+                error: failure.toString(),
+                isLoading: false,
+              ),
+            );
+          },
+          (_) async {
+            final memoriesResult = await _getAllMemoriesUseCase(
+              const NoParams(),
+            );
+            if (!emit.isDone) {
+              memoriesResult.fold(
+                (failure) => emit(
+                  state.copyWith(
+                    error: failure.toString(),
+                    isLoading: false,
+                  ),
+                ),
+                (memories) => emit(
+                  state.copyWith(
+                    memories: memories,
+                    filteredMemories: memories,
+                    isLoading: false,
+                  ),
+                ),
+              );
+            }
+          },
+        );
+      }
+    } on Exception catch (e) {
+      if (!emit.isDone) {
+        emit(
+          state.copyWith(
+            error: e.toString(),
+            isLoading: false,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _onGetMemoriesByDateRange(
+    GetMemoriesByDateRange event,
+    Emitter<MemoryState> emit,
+  ) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      final filteredMemoriesResult = await _getMemoriesByDateRangeUseCase(
+        DateRangeParams(
+          start: event.startDate,
+          end: event.endDate,
+        ),
+      );
+      if (!emit.isDone) {
+        filteredMemoriesResult.fold(
+          (failure) => emit(
+            state.copyWith(
+              error: failure.toString(),
+              isLoading: false,
+            ),
+          ),
+          (filteredMemories) => emit(
+            state.copyWith(
+              filteredMemories: filteredMemories,
+              isLoading: false,
+            ),
+          ),
+        );
+      }
+    } on Exception catch (e) {
+      if (!emit.isDone) {
+        emit(
+          state.copyWith(
+            error: e.toString(),
+            isLoading: false,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _onClearAllMemories(
+    ClearAllMemories event,
+    Emitter<MemoryState> emit,
+  ) async {
+    emit(state.copyWith(isLoading: true));
+    try {
+      final clearResult = await _clearAllMemoriesUseCase(const NoParams());
+      if (!emit.isDone) {
+        clearResult.fold(
+          (failure) => emit(
+            state.copyWith(
+              error: failure.toString(),
+              isLoading: false,
+            ),
+          ),
+          (_) => emit(
+            state.copyWith(
+              memories: const [],
+              filteredMemories: const [],
+              isLoading: false,
+            ),
+          ),
+        );
+      }
+    } on Exception catch (e) {
+      if (!emit.isDone) {
+        emit(
+          state.copyWith(
+            error: e.toString(),
+            isLoading: false,
+          ),
+        );
+      }
+    }
   }
 }

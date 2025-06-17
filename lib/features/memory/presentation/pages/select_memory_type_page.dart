@@ -5,18 +5,58 @@ import 'dart:ui';
 import 'package:animated_background/animated_background.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_iconpicker/flutter_iconpicker.dart'
-    as FlutterIconPicker;
-import 'package:flutter_iconpicker/flutter_iconpicker.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:innerverse/core/constants/emoji_options.dart';
 import 'package:innerverse/features/memory/domain/entities/emoji_option.dart';
+import 'package:innerverse/features/memory/domain/entities/memory.dart';
+import 'package:innerverse/features/memory/domain/entities/world_icon.dart';
+import 'package:innerverse/features/memory/presentation/blocs/memory_bloc.dart';
+import 'package:innerverse/features/memory/presentation/blocs/memory_event.dart';
 import 'package:innerverse/shared/buttons/app_primary_button.dart';
 import 'package:innerverse/shared/buttons/rounded_icon_button.dart'
     show GradientIconButton;
 import 'package:innerverse/shared/widgets/custome_text_field.dart';
 import 'package:rive/rive.dart' as rive;
+import 'package:uuid/uuid.dart';
+import 'package:innerverse/features/memory/data/repositories/world_icon_repository.dart';
+
+class MemoryCreationData {
+  MemoryCreationData({
+    required this.emojiOption,
+    required this.emotionSliderValue,
+    this.dateTime,
+    this.time,
+    this.title,
+    this.description,
+    this.worldIcon,
+    this.worldIconTitle,
+  });
+
+  EmojiOption emojiOption;
+  double emotionSliderValue;
+  DateTime? dateTime;
+  TimeOfDay? time;
+  String? title;
+  String? description;
+  IconData? worldIcon;
+  String? worldIconTitle;
+
+  Memory toMemory() {
+    return Memory.fromEmojiOption(
+      id: const Uuid().v4(),
+      emojiOption: emojiOption,
+      emotionSliderValue: emotionSliderValue,
+      dateTime: dateTime ?? DateTime.now(),
+      time: time ?? TimeOfDay.now(),
+      title: title,
+      description: description,
+      worldIcon: worldIcon ?? Icons.star,
+      worldIconTitle: worldIconTitle ?? 'Default',
+    );
+  }
+}
 
 class SelectMemoryTypePage extends StatefulWidget {
   const SelectMemoryTypePage({super.key});
@@ -34,11 +74,11 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
   late CurvedAnimation bounceAnimation;
   int selectedIndex = 0;
   int bottomPageIndex = 0;
+  int selectedWorldIndex = 0;
   double speed = 5;
-  List<WorldIcon> worldIcons = [
-    WorldIcon(name: 'Family', icon: Icons.family_restroom),
-    WorldIcon(name: 'Relation Ship', icon: Icons.heat_pump_rounded),
-  ];
+  List<WorldIcon> worldIcons = [];
+  late MemoryCreationData memoryData;
+  late WorldIconRepository _repository;
 
   @override
   void initState() {
@@ -55,6 +95,13 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
       curve: Curves.elasticOut,
     );
 
+    memoryData = MemoryCreationData(
+      emojiOption: emojiOptions[0],
+      emotionSliderValue: 5.0,
+      dateTime: DateTime.now(),
+      time: TimeOfDay.now(),
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       onEmojiSelected(0);
     });
@@ -67,6 +114,22 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
         });
       }
     });
+
+    emojiPageController.addListener(() {
+      final newIndex = emojiPageController.page?.round() ?? 0;
+      if (newIndex != selectedWorldIndex) {
+        setState(() {
+          selectedWorldIndex = newIndex;
+          if (selectedWorldIndex >= 0 &&
+              selectedWorldIndex < worldIcons.length) {
+            memoryData.worldIcon = worldIcons[selectedWorldIndex].icon;
+            memoryData.worldIconTitle = worldIcons[selectedWorldIndex].name;
+          }
+        });
+      }
+    });
+
+    _initializeRepository();
   }
 
   @override
@@ -76,6 +139,15 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
     bottomPageController.dispose();
     animationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initializeRepository() async {
+    _repository = WorldIconRepository();
+    await _repository.init();
+    await _repository.initializeDefaultIcons();
+    setState(() {
+      worldIcons = _repository.getAllWorldIcons();
+    });
   }
 
   void _handleWorldIconsChanged(List<WorldIcon> data) {
@@ -96,6 +168,19 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
     setState(() => selectedIndex = index);
     animationController.forward(from: 0);
     HapticFeedback.lightImpact();
+  }
+
+  void onWorldIconSelected(int index) {
+    setState(() {
+      selectedWorldIndex = index;
+      memoryData.worldIcon = worldIcons[index].icon;
+      memoryData.worldIconTitle = worldIcons[index].name;
+    });
+    emojiPageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -193,7 +278,7 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                                       offset: const Offset(0, -20),
                                       child: rive.RiveAnimation.asset(
                                         'assets/rive/innerverse3.riv',
-                                        artboard: emojiOptions[index].id,
+                                        artboard: emojiOptions[index].riveAsset,
                                         fit: BoxFit.cover,
                                       ),
                                     ),
@@ -206,9 +291,9 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                               child: PageView.builder(
                                 controller: emojiPageController,
                                 itemCount: worldIcons.length,
-                                onPageChanged: onEmojiSelected,
                                 itemBuilder: (context, index) {
-                                  final isSelected = index == selectedIndex;
+                                  final isSelected =
+                                      index == selectedWorldIndex;
                                   return ScaleTransition(
                                     scale: isSelected
                                         ? bounceAnimation
@@ -217,6 +302,23 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(20),
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            gradient: LinearGradient(
+                                              colors:
+                                                  emojiOptions[selectedIndex]
+                                                      .gradient,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            worldIcons[index].icon,
+                                            size: 60,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
                                         Text(
                                           worldIcons[index].name,
                                           textAlign: TextAlign.center,
@@ -224,10 +326,6 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                                               ?.copyWith(
                                                 fontWeight: FontWeight.bold,
                                               ),
-                                        ),
-                                        Icon(
-                                          worldIcons[index].icon,
-                                          size: 50,
                                         ),
                                       ],
                                     ),
@@ -265,6 +363,7 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                     );
                   },
                   onEmojiSelected: onEmojiSelected,
+                  memoryData: memoryData,
                 ),
                 _TextFieldStep(
                   onBack: () {
@@ -274,17 +373,18 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                       curve: Curves.easeInOut,
                     );
                   },
-                  selectedData: selectedEmoji,
                   onSubmit: () {
                     bottomPageController.nextPage(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                     );
                   },
+                  selectedData: selectedEmoji,
+                  memoryData: memoryData,
+                  bottomPageController: bottomPageController,
                 ),
                 _WorldTypeStep(
                   onWorldIconsChanged: _handleWorldIconsChanged,
-
                   onBack: () {
                     FocusScope.of(context).unfocus();
                     bottomPageController.previousPage(
@@ -292,13 +392,16 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                       curve: Curves.easeInOut,
                     );
                   },
-                  selectedData: selectedEmoji,
                   onSubmit: () {
                     bottomPageController.nextPage(
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                     );
                   },
+                  selectedData: selectedEmoji,
+                  memoryData: memoryData,
+                  onWorldIconSelected: onWorldIconSelected,
+                  selectedWorldIndex: selectedWorldIndex,
                 ),
               ],
             ),
@@ -309,65 +412,72 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
   }
 }
 
-class WorldIcon {
-  WorldIcon({
-    required this.name,
-    required this.icon,
-  });
-  final String name;
-  final IconData icon;
-}
-
 class _WorldTypeStep extends StatefulWidget {
   const _WorldTypeStep({
     required this.onBack,
     required this.onSubmit,
     required this.selectedData,
     required this.onWorldIconsChanged,
+    required this.memoryData,
+    required this.onWorldIconSelected,
+    required this.selectedWorldIndex,
   });
 
   final VoidCallback onBack;
   final VoidCallback onSubmit;
   final EmojiOption selectedData;
   final ValueChanged<List<WorldIcon>> onWorldIconsChanged;
+  final MemoryCreationData memoryData;
+  final ValueChanged<int> onWorldIconSelected;
+  final int selectedWorldIndex;
 
   @override
   State<_WorldTypeStep> createState() => _WorldTypeStepState();
 }
 
 class _WorldTypeStepState extends State<_WorldTypeStep> {
-  final List<WorldIcon> worldIcons = [
-    WorldIcon(name: 'Family', icon: Icons.family_restroom),
-    WorldIcon(name: 'Relation Ship', icon: Icons.heat_pump_rounded),
-  ];
-
+  late WorldIconRepository _repository;
+  List<WorldIcon> worldIcons = [];
   bool isAdding = false;
   IconData? pickedIcon;
   final TextEditingController nameController = TextEditingController();
 
-  Future<void> _pickIcon() async {
-    final icon = await FlutterIconPicker.showIconPicker(
-      context,
-      iconPackModes: [IconPack.material],
-    );
-    if (icon != null) {
-      setState(() {
-        pickedIcon = icon;
-      });
-    }
+  @override
+  void initState() {
+    super.initState();
+    _initializeRepository();
+  }
+
+  Future<void> _initializeRepository() async {
+    _repository = WorldIconRepository();
+    await _repository.init();
+    await _repository.initializeDefaultIcons();
+    setState(() {
+      worldIcons = _repository.getAllWorldIcons();
+    });
   }
 
   void _addWorldSymbol() {
     final name = nameController.text.trim();
     if (name.isNotEmpty && pickedIcon != null) {
+      final newIcon = WorldIcon(name: name, icon: pickedIcon!);
+      _repository.addWorldIcon(newIcon);
       setState(() {
-        worldIcons.add(WorldIcon(name: name, icon: pickedIcon!));
+        worldIcons = _repository.getAllWorldIcons();
+        widget.memoryData.worldIcon = pickedIcon;
+        widget.memoryData.worldIconTitle = name;
         nameController.clear();
         pickedIcon = null;
         isAdding = false;
       });
       widget.onWorldIconsChanged(worldIcons);
     }
+  }
+
+  void _saveMemory() {
+    final memory = widget.memoryData.toMemory();
+    context.read<MemoryBloc>().add(AddMemory(memory));
+    context.pop();
   }
 
   @override
@@ -411,10 +521,7 @@ class _WorldTypeStepState extends State<_WorldTypeStep> {
                   ),
                 ),
                 AppPrimaryButton(
-                  onTap: () {
-                    FocusScope.of(context).unfocus();
-                    widget.onSubmit();
-                  },
+                  onTap: _saveMemory,
                   height: 80,
                   maxWidth: 70,
                   minWidth: 70,
@@ -455,34 +562,54 @@ class _WorldTypeStepState extends State<_WorldTypeStep> {
                   spacing: 12,
                   runSpacing: 12,
                   children: [
-                    ...worldIcons.map((item) {
-                      return SizedBox(
-                        width:
-                            MediaQuery.of(context).size.width / 4 -
-                            24, // 4 per row with spacing
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey[200],
+                    ...worldIcons.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final item = entry.value;
+                      final isSelected = index == widget.selectedWorldIndex;
+                      return GestureDetector(
+                        onTap: () => widget.onWorldIconSelected(index),
+                        child: SizedBox(
+                          width: MediaQuery.of(context).size.width / 4 - 24,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isSelected
+                                      ? widget.selectedData.gradient.first
+                                      : Colors.grey[200],
+                                  border: isSelected
+                                      ? Border.all(
+                                          color:
+                                              widget.selectedData.gradient.last,
+                                          width: 2,
+                                        )
+                                      : null,
+                                ),
+                                child: Icon(
+                                  item.icon,
+                                  size: 28,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.grey[800],
+                                ),
                               ),
-                              child: Icon(
-                                item.icon,
-                                size: 28,
-                                color: Colors.grey[800],
+                              const SizedBox(height: 6),
+                              Text(
+                                item.name,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isSelected
+                                      ? widget.selectedData.gradient.first
+                                      : Colors.black,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
                               ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              item.name,
-                              style: const TextStyle(fontSize: 11),
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       );
                     }),
@@ -634,11 +761,15 @@ class _TextFieldStep extends StatefulWidget {
     required this.onBack,
     required this.onSubmit,
     required this.selectedData,
+    required this.memoryData,
+    required this.bottomPageController,
   });
 
   final VoidCallback onBack;
   final VoidCallback onSubmit;
   final EmojiOption selectedData;
+  final MemoryCreationData memoryData;
+  final PageController bottomPageController;
 
   @override
   State<_TextFieldStep> createState() => _TextFieldStepState();
@@ -705,7 +836,9 @@ class _TextFieldStepState extends State<_TextFieldStep> {
     );
 
     if (date != null) {
-      setState(() => selectedDate = date);
+      setState(() {
+        widget.memoryData.dateTime = date;
+      });
     }
   }
 
@@ -742,8 +875,8 @@ class _TextFieldStepState extends State<_TextFieldStep> {
           time.hour < nowTime.hour ||
           (time.hour == nowTime.hour && time.minute <= nowTime.minute);
 
-      if (selectedDate != null &&
-          selectedDate!.isAtSameMomentAs(DateTime.now()) &&
+      if (widget.memoryData.dateTime != null &&
+          widget.memoryData.dateTime!.isAtSameMomentAs(DateTime.now()) &&
           !isBeforeNow) {
         // Show warning or ignore
         ScaffoldMessenger.of(context).showSnackBar(
@@ -752,8 +885,21 @@ class _TextFieldStepState extends State<_TextFieldStep> {
         return;
       }
 
-      setState(() => selectedTime = time);
+      setState(() {
+        widget.memoryData.time = time;
+      });
     }
+  }
+
+  void _saveMemory() {
+    widget.memoryData.title = titleController.text.trim();
+    widget.memoryData.description = noteController.text.trim();
+
+    final memory = widget.memoryData.toMemory();
+    widget.bottomPageController.nextPage(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -784,7 +930,7 @@ class _TextFieldStepState extends State<_TextFieldStep> {
           AppPrimaryButton(
             onTap: () {
               FocusScope.of(context).unfocus();
-              widget.onSubmit();
+              _saveMemory();
             },
             height: 80,
             maxWidth: 70,
@@ -825,8 +971,8 @@ class _TextFieldStepState extends State<_TextFieldStep> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          (selectedDate ?? DateTime.now()) != null
-                              ? '${(selectedDate ?? DateTime.now()).day}/${(selectedDate ?? DateTime.now()).month}/${(selectedDate ?? DateTime.now()).year}'
+                          (widget.memoryData.dateTime ?? DateTime.now()) != null
+                              ? '${(widget.memoryData.dateTime ?? DateTime.now()).day}/${(widget.memoryData.dateTime ?? DateTime.now()).month}/${(widget.memoryData.dateTime ?? DateTime.now()).year}'
                               : 'Pick a date',
                           style: TextStyle(color: colorScheme.onSurfaceVariant),
                         ),
@@ -847,7 +993,9 @@ class _TextFieldStepState extends State<_TextFieldStep> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          (selectedTime ?? TimeOfDay.now()).format(context),
+                          (widget.memoryData.time ?? TimeOfDay.now()).format(
+                            context,
+                          ),
                           style: TextStyle(color: colorScheme.onSurfaceVariant),
                         ),
                       ],
@@ -895,6 +1043,7 @@ class _MemoryTypeStep extends StatelessWidget {
     required this.onSpeedChanged,
     required this.onNextPressed,
     required this.onEmojiSelected,
+    required this.memoryData,
   });
 
   final double speed;
@@ -903,6 +1052,7 @@ class _MemoryTypeStep extends StatelessWidget {
   final void Function(double) onSpeedChanged;
   final VoidCallback onNextPressed;
   final void Function(int index, {bool fromBottom}) onEmojiSelected;
+  final MemoryCreationData memoryData;
 
   @override
   Widget build(BuildContext context) {
@@ -920,7 +1070,10 @@ class _MemoryTypeStep extends StatelessWidget {
                 children: List.generate(emojiOptions.length, (index) {
                   final isActive = index == selectedIndex;
                   return GestureDetector(
-                    onTap: () => onEmojiSelected(index, fromBottom: true),
+                    onTap: () {
+                      onEmojiSelected(index, fromBottom: true);
+                      memoryData.emojiOption = emojiOptions[index];
+                    },
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 4),
                       child: Stack(
@@ -974,7 +1127,10 @@ class _MemoryTypeStep extends StatelessWidget {
           child: HalfCircleSliderWithAppButton(
             selectedData: selectedEmoji,
             gradientColors: selectedEmoji.gradient,
-            onChanged: onSpeedChanged,
+            onChanged: (value) {
+              onSpeedChanged(value);
+              memoryData.emotionSliderValue = value;
+            },
             onNextPressed: onNextPressed,
           ),
         ),
