@@ -1,71 +1,100 @@
 import 'package:flutter/material.dart';
-import 'package:innerverse/features/memory/domain/entities/memory.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hive/hive.dart';
+import 'package:innerverse/features/world/data/models/world_icon_model.dart';
 
-class MemoryModel extends Memory {
-  MemoryModel({
-    required super.id,
-    required super.emojiLabel,
-    required super.riveAsset,
-    required super.emotionSliderValue,
-    required super.dateTime,
-    required super.time,
-    required super.worldIcon,
-    required super.worldIconTitle,
-    super.title,
-    super.description,
-  });
-  factory MemoryModel.fromEntity(Memory memory) {
-    return MemoryModel(
-      id: memory.id,
-      emojiLabel: memory.emojiLabel,
-      riveAsset: memory.riveAsset,
-      emotionSliderValue: memory.emotionSliderValue,
-      dateTime: memory.dateTime,
-      time: memory.time,
-      worldIcon: memory.worldIcon,
-      worldIconTitle: memory.worldIconTitle,
-      title: memory.title,
-      description: memory.description,
+part 'memory_model.freezed.dart';
+part 'memory_model.g.dart';
+
+@freezed
+@HiveType(typeId: 6)
+class MemoryModel with _$MemoryModel {
+  const factory MemoryModel({
+    @HiveField(0) required String id,
+    @HiveField(1) required String emojiLabel,
+    @HiveField(2) required String riveAsset,
+    @HiveField(3) required double emotionSliderValue,
+    @HiveField(4) required DateTime dateTime,
+    @HiveField(5) @TimeOfDayConverter() required TimeOfDay time,
+    @HiveField(8) @WorldIconModelConverter() required WorldIconModel worldIcon,
+    @HiveField(6) String? title,
+    @HiveField(7) String? description,
+  }) = _MemoryModel;
+  factory MemoryModel.fromJson(Map<String, dynamic> json) =>
+      _$MemoryModelFromJson(json);
+}
+
+class TimeOfDayConverter
+    implements JsonConverter<TimeOfDay, Map<String, dynamic>> {
+  const TimeOfDayConverter();
+
+  @override
+  TimeOfDay fromJson(Map<String, dynamic> json) {
+    return TimeOfDay(
+      hour: json['hour'] as int,
+      minute: json['minute'] as int,
     );
   }
 
-  factory MemoryModel.fromJson(Map<String, dynamic> json) {
-    return MemoryModel(
-      id: json['id'] as String,
-      emojiLabel: json['emojiLabel'] as String,
-      riveAsset: json['riveAsset'] as String,
-      emotionSliderValue: json['emotionSliderValue'] as double,
-      dateTime: DateTime.parse(json['dateTime'] as String),
-      time: TimeOfDay(
-        hour: json['timeHour'] as int,
-        minute: json['timeMinute'] as int,
-      ),
-      worldIcon: IconData(
-        json['worldIconCodePoint'] as int,
-        fontFamily: json['worldIconFontFamily'] as String,
-        fontPackage: json['worldIconFontPackage'] as String?,
-      ),
-      worldIconTitle: json['worldIconTitle'] as String,
-      title: json['title'] as String?,
-      description: json['description'] as String?,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
+  @override
+  Map<String, dynamic> toJson(TimeOfDay time) {
     return {
-      'id': id,
-      'emojiLabel': emojiLabel,
-      'riveAsset': riveAsset,
-      'emotionSliderValue': emotionSliderValue,
-      'dateTime': dateTime.toIso8601String(),
-      'timeHour': time.hour,
-      'timeMinute': time.minute,
-      'worldIconCodePoint': worldIcon.codePoint,
-      'worldIconFontFamily': worldIcon.fontFamily,
-      'worldIconFontPackage': worldIcon.fontPackage,
-      'worldIconTitle': worldIconTitle,
-      'title': title,
-      'description': description,
+      'hour': time.hour,
+      'minute': time.minute,
+    };
+  }
+}
+
+class WorldIconModelConverter
+    implements JsonConverter<WorldIconModel, Map<String, dynamic>> {
+  const WorldIconModelConverter();
+
+  @override
+  WorldIconModel fromJson(Map<String, dynamic> json) {
+    return WorldIconModel(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      icon: IconData(
+        json['icon']['codePoint'] as int,
+        fontFamily: json['icon']['fontFamily'] as String,
+        fontPackage: json['icon']['fontPackage'] as String?,
+      ),
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson(WorldIconModel model) {
+    return {
+      'id': model.id,
+      'name': model.name,
+      'icon': {
+        'codePoint': model.icon.codePoint,
+        'fontFamily': model.icon.fontFamily,
+        'fontPackage': model.icon.fontPackage,
+      },
+    };
+  }
+}
+
+class IconDataConverter
+    implements JsonConverter<IconData, Map<String, dynamic>> {
+  const IconDataConverter();
+
+  @override
+  IconData fromJson(Map<String, dynamic> json) {
+    return IconData(
+      json['codePoint'] as int,
+      fontFamily: json['fontFamily'] as String,
+      fontPackage: json['fontPackage'] as String?,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toJson(IconData icon) {
+    return {
+      'codePoint': icon.codePoint,
+      'fontFamily': icon.fontFamily,
+      'fontPackage': icon.fontPackage,
     };
   }
 }
