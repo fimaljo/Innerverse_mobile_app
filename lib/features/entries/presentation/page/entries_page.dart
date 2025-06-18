@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
-
 import 'package:innerverse/core/navigation/route_constants.dart';
 import 'package:innerverse/features/memory/domain/entities/memory.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_bloc.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_event.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_state.dart';
-import 'package:innerverse/shared/widgets/custome_text_field.dart';
 import 'package:innerverse/shared/buttons/app_primary_button.dart';
+import 'package:innerverse/shared/widgets/custome_text_field.dart';
+import 'package:intl/intl.dart';
 
 class EntriesPage extends StatefulWidget {
   const EntriesPage({super.key});
@@ -22,7 +21,7 @@ class _EntriesPageState extends State<EntriesPage> {
   @override
   void initState() {
     super.initState();
-    context.read<MemoryBloc>().add(LoadMemories());
+    context.read<MemoryBloc>().add(const LoadMemories());
   }
 
   @override
@@ -40,9 +39,7 @@ class _EntriesPageState extends State<EntriesPage> {
                 hintText: 'Search memories...',
                 textColor: Colors.black,
                 hintColor: Colors.grey,
-                onChanged: (value) {
-                  // TODO: Implement search
-                },
+                onChanged: (value) {},
               ),
             ),
             Expanded(
@@ -109,9 +106,8 @@ class _EntriesPageState extends State<EntriesPage> {
 }
 
 class _MemoryCard extends StatelessWidget {
-  final Memory memory;
-
   const _MemoryCard({required this.memory});
+  final Memory memory;
 
   @override
   Widget build(BuildContext context) {
@@ -120,11 +116,11 @@ class _MemoryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.grey,
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -133,7 +129,7 @@ class _MemoryCard extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [
                   Colors.blue,
@@ -142,7 +138,7 @@ class _MemoryCard extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: const BorderRadius.only(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
               ),
@@ -166,7 +162,7 @@ class _MemoryCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  memory.emojiLabel ?? 'Untitled',
+                  memory.emojiLabel,
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
@@ -206,7 +202,7 @@ class _MemoryCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${memory.time.hour.toString().padLeft(2, '0')}:${memory.time.minute.toString().padLeft(2, '0')}',
+                      memory.time.hour.toString(),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -220,7 +216,7 @@ class _MemoryCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Emotion: ${memory.emotionSliderValue.toStringAsFixed(1)}',
+                      'Emotion: ${memory.emotionSliderValue}',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],

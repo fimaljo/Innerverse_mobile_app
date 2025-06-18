@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/widgets.dart';
 
 class RouteTracker extends NavigatorObserver {
@@ -8,12 +7,12 @@ class RouteTracker extends NavigatorObserver {
   Stream<String> get routeStream => _controller.stream;
 
   @override
-  void didPush(Route route, Route? previousRoute) {
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
     _controller.add(route.settings.name ?? '');
   }
 
   @override
-  void didPop(Route route, Route? previousRoute) {
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
     _controller.add(previousRoute?.settings.name ?? '');
   }
 

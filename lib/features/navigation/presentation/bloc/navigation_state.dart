@@ -31,6 +31,6 @@ class NavigationState extends Equatable {
 
   @override
   String toString() {
-    return 'NavigationState(currentTab: $currentTab, isLoading: $isLoading, error: $error)';
+    return 'State(currentTab: $currentTab, isLoading: $isLoading, e: $error)';
   }
 }

@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:innerverse/core/constants/emoji_options.dart';
+import 'package:innerverse/features/memory/data/repositories/world_icon_repository.dart';
 import 'package:innerverse/features/memory/domain/entities/emoji_option.dart';
 import 'package:innerverse/features/memory/domain/entities/memory.dart';
 import 'package:innerverse/features/memory/domain/entities/world_icon.dart';
@@ -20,7 +21,6 @@ import 'package:innerverse/shared/buttons/rounded_icon_button.dart'
 import 'package:innerverse/shared/widgets/custome_text_field.dart';
 import 'package:rive/rive.dart' as rive;
 import 'package:uuid/uuid.dart';
-import 'package:innerverse/features/memory/data/repositories/world_icon_repository.dart';
 
 class MemoryCreationData {
   MemoryCreationData({
@@ -97,7 +97,7 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
 
     memoryData = MemoryCreationData(
       emojiOption: emojiOptions[0],
-      emotionSliderValue: 5.0,
+      emotionSliderValue: 5,
       dateTime: DateTime.now(),
       time: TimeOfDay.now(),
     );
@@ -187,7 +187,6 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
 
     final selectedEmoji = emojiOptions[selectedIndex];
     final normalized = (speed / 10).clamp(0.0, 1.0);
@@ -879,9 +878,11 @@ class _TextFieldStepState extends State<_TextFieldStep> {
           widget.memoryData.dateTime!.isAtSameMomentAs(DateTime.now()) &&
           !isBeforeNow) {
         // Show warning or ignore
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Future time not allowed')),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Future time not allowed')),
+          );
+        }
         return;
       }
 
@@ -895,7 +896,7 @@ class _TextFieldStepState extends State<_TextFieldStep> {
     widget.memoryData.title = titleController.text.trim();
     widget.memoryData.description = noteController.text.trim();
 
-    final memory = widget.memoryData.toMemory();
+    widget.memoryData.toMemory();
     widget.bottomPageController.nextPage(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
@@ -1184,7 +1185,6 @@ class _HalfCircleSliderWithAppButtonState
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
     return LayoutBuilder(
       builder: (context, constraints) {
         // Limit max size based on available space (esp. height)
@@ -1301,7 +1301,7 @@ class GradientArcPainter extends CustomPainter {
       ..addOval(Rect.fromCircle(center: thumbCenter, radius: thumbRadius));
 
     canvas
-      ..drawShadow(thumbPath, Colors.black.withOpacity(0.4), 4, true)
+      ..drawShadow(thumbPath, Colors.black..withValues(alpha: 0.4), 4, true)
       ..drawCircle(thumbCenter, thumbRadius, Paint()..color = Colors.white);
   }
 

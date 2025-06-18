@@ -14,6 +14,20 @@ class MemoryModel extends Memory {
     super.title,
     super.description,
   });
+  factory MemoryModel.fromEntity(Memory memory) {
+    return MemoryModel(
+      id: memory.id,
+      emojiLabel: memory.emojiLabel,
+      riveAsset: memory.riveAsset,
+      emotionSliderValue: memory.emotionSliderValue,
+      dateTime: memory.dateTime,
+      time: memory.time,
+      worldIcon: memory.worldIcon,
+      worldIconTitle: memory.worldIconTitle,
+      title: memory.title,
+      description: memory.description,
+    );
+  }
 
   factory MemoryModel.fromJson(Map<String, dynamic> json) {
     return MemoryModel(
@@ -53,20 +67,5 @@ class MemoryModel extends Memory {
       'title': title,
       'description': description,
     };
-  }
-
-  factory MemoryModel.fromEntity(Memory memory) {
-    return MemoryModel(
-      id: memory.id,
-      emojiLabel: memory.emojiLabel,
-      riveAsset: memory.riveAsset,
-      emotionSliderValue: memory.emotionSliderValue,
-      dateTime: memory.dateTime,
-      time: memory.time,
-      worldIcon: memory.worldIcon,
-      worldIconTitle: memory.worldIconTitle,
-      title: memory.title,
-      description: memory.description,
-    );
   }
 }

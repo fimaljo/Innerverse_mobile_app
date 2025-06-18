@@ -18,9 +18,6 @@ class AppNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return BlocBuilder<NavigationBloc, NavigationState>(
@@ -63,7 +60,7 @@ class AppNavigationBar extends StatelessWidget {
                         onTap: () => _onTabTap(context, NavigationTab.worlds),
                         child: NavigationItem(
                           icon: Icons
-                              .public_outlined, // Changed to a more world-like icon
+                              .public_outlined, // Changed to a more world-like
                           label: 'Worlds',
                           isActive: currentTab == NavigationTab.worlds,
                         ),
@@ -122,7 +119,7 @@ class ArcPainter extends CustomPainter {
 
     // Softer shadow
     canvas
-      ..drawShadow(path, Colors.black.withOpacity(0.15), 6, true)
+      ..drawShadow(path, Colors.black..withValues(alpha: 0.15), 6, true)
       ..drawPath(path, paint);
   }
 

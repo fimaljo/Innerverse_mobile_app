@@ -28,6 +28,7 @@ class NavigationBloc extends Bloc<NavigationEvent, NavigationState> {
 
   //   // Add initial route event on next microtask
   //   final currentTab = getCurrentTabUseCase.call();
+  // ignore: lines_longer_than_80_chars
   //   await Future.microtask(() => add(NavigationRouteChanged(currentTab.route)));
   // }
 

@@ -16,7 +16,7 @@ class NavigationItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final activeColor = colorScheme.onPrimary;
-    final inactiveColor = colorScheme.onPrimary.withOpacity(0.7);
+    final inactiveColor = colorScheme.onPrimary.withValues(alpha: 0.6);
 
     return Semantics(
       selected: isActive,
@@ -28,7 +28,7 @@ class NavigationItem extends StatelessWidget {
         decoration: isActive
             ? BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white..withValues(alpha: 0.2),
               )
             : null,
         child: Column(

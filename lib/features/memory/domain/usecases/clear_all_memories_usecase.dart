@@ -4,15 +4,14 @@ import 'package:innerverse/features/memory/domain/repositories/i_memory_reposito
 import 'package:innerverse/features/memory/domain/usecases/base_usecase.dart';
 
 class ClearAllMemoriesUseCase implements BaseUseCase<void, NoParams> {
-  final IMemoryRepository _repository;
-
   ClearAllMemoriesUseCase(this._repository);
+  final IMemoryRepository _repository;
 
   @override
   Future<Either<MemoryFailure, void>> call(NoParams params) async {
     try {
       return await _repository.clearAllMemories();
-    } catch (e) {
+    } on Exception {
       return left(const MemoryFailure.unexpected());
     }
   }

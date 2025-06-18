@@ -5,15 +5,14 @@ import 'package:innerverse/features/memory/domain/repositories/i_memory_reposito
 import 'package:innerverse/features/memory/domain/usecases/base_usecase.dart';
 
 class GetAllMemoriesUseCase implements BaseUseCase<List<Memory>, NoParams> {
-  final IMemoryRepository _repository;
-
   GetAllMemoriesUseCase(this._repository);
+  final IMemoryRepository _repository;
 
   @override
   Future<Either<MemoryFailure, List<Memory>>> call(NoParams params) async {
     try {
       return _repository.getAllMemories();
-    } catch (e) {
+    } on Exception {
       return left(const MemoryFailure.unexpected());
     }
   }

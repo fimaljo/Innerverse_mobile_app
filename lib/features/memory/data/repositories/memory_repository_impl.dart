@@ -13,7 +13,7 @@ class MemoryRepositoryImpl implements IMemoryRepository {
     try {
       await _localDataSource.init();
       return right(null);
-    } catch (e) {
+    } on Exception {
       return left(const MemoryFailure.storageError());
     }
   }
@@ -23,7 +23,7 @@ class MemoryRepositoryImpl implements IMemoryRepository {
     try {
       await _localDataSource.addMemory(memory);
       return right(null);
-    } catch (e) {
+    } on Exception {
       return left(const MemoryFailure.storageError());
     }
   }
@@ -33,7 +33,7 @@ class MemoryRepositoryImpl implements IMemoryRepository {
     try {
       await _localDataSource.updateMemory(memory);
       return right(null);
-    } catch (e) {
+    } on Exception {
       return left(const MemoryFailure.storageError());
     }
   }
@@ -43,7 +43,7 @@ class MemoryRepositoryImpl implements IMemoryRepository {
     try {
       await _localDataSource.deleteMemory(id);
       return right(null);
-    } catch (e) {
+    } on Exception {
       return left(const MemoryFailure.storageError());
     }
   }
@@ -53,7 +53,7 @@ class MemoryRepositoryImpl implements IMemoryRepository {
     try {
       final memory = _localDataSource.getMemory(id);
       return right(memory);
-    } catch (e) {
+    } on Exception {
       return left(const MemoryFailure.storageError());
     }
   }
@@ -63,7 +63,7 @@ class MemoryRepositoryImpl implements IMemoryRepository {
     try {
       final memories = _localDataSource.getAllMemories();
       return right(memories);
-    } catch (e) {
+    } on Exception {
       return left(const MemoryFailure.storageError());
     }
   }
@@ -76,7 +76,7 @@ class MemoryRepositoryImpl implements IMemoryRepository {
     try {
       final memories = _localDataSource.getMemoriesByDateRange(start, end);
       return right(memories);
-    } catch (e) {
+    } on Exception {
       return left(const MemoryFailure.storageError());
     }
   }
@@ -86,7 +86,7 @@ class MemoryRepositoryImpl implements IMemoryRepository {
     try {
       await _localDataSource.clearAllMemories();
       return right(null);
-    } catch (e) {
+    } on Exception {
       return left(const MemoryFailure.storageError());
     }
   }

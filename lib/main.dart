@@ -4,10 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:innerverse/app.dart';
 import 'package:innerverse/core/di/injection_container.dart' as di;
+import 'package:innerverse/core/init/hive_init.dart';
 import 'package:innerverse/core/navigation/app_router.dart';
 import 'package:innerverse/core/navigation/route_tracker.dart';
 import 'package:innerverse/core/utils/app_bloc_observer.dart';
-import 'package:innerverse/core/init/hive_init.dart';
 import 'package:path_provider/path_provider.dart';
 
 void main() async {

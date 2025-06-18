@@ -5,20 +5,18 @@ import 'package:innerverse/features/memory/domain/repositories/i_memory_reposito
 import 'package:innerverse/features/memory/domain/usecases/base_usecase.dart';
 
 class DateRangeParams {
-  final DateTime start;
-  final DateTime end;
-
   const DateRangeParams({
     required this.start,
     required this.end,
   });
+  final DateTime start;
+  final DateTime end;
 }
 
 class GetMemoriesByDateRangeUseCase
     implements BaseUseCase<List<Memory>, DateRangeParams> {
-  final IMemoryRepository _repository;
-
   GetMemoriesByDateRangeUseCase(this._repository);
+  final IMemoryRepository _repository;
 
   @override
   Future<Either<MemoryFailure, List<Memory>>> call(
@@ -26,7 +24,7 @@ class GetMemoriesByDateRangeUseCase
   ) async {
     try {
       return _repository.getMemoriesByDateRange(params.start, params.end);
-    } catch (e) {
+    } on Exception {
       return left(const MemoryFailure.unexpected());
     }
   }

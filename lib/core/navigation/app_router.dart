@@ -8,7 +8,6 @@ import 'package:innerverse/core/navigation/route_tracker.dart';
 import 'package:innerverse/features/analytics/presentation/page/analytics_page.dart';
 import 'package:innerverse/features/entries/presentation/page/entries_page.dart';
 import 'package:innerverse/features/home/presentation/pages/home_page.dart';
-import 'package:innerverse/features/memory/domain/entities/emoji_option.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_bloc.dart';
 import 'package:innerverse/features/memory/presentation/pages/select_memory_type_page.dart';
 import 'package:innerverse/features/navigation/domain/entities/navigation_tab_entities.dart';
@@ -23,7 +22,7 @@ class AppRouter {
       debugLogDiagnostics: true,
       observers: [tracker],
       redirect: (context, state) {
-        // TODO: Add auth redirect logic if needed
+        // Add auth redirect logic if needed
         return null;
       },
       routes: <RouteBase>[

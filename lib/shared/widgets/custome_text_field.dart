@@ -97,7 +97,8 @@ class _CustomeTextFieldState extends State<CustomeTextField> {
   @override
   Widget build(BuildContext context) {
     final defaultTextColor = widget.textColor ?? Colors.white;
-    final defaultHintColor = widget.hintColor ?? Colors.white.withOpacity(0.6);
+    final defaultHintColor =
+        widget.hintColor ?? Colors.white.withValues(alpha: 0.6);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,7 +144,7 @@ class _CustomeTextFieldState extends State<CustomeTextField> {
             .animate(target: _isFocused ? 1 : 0)
             .shimmer(
               duration: 1500.ms,
-              color: defaultTextColor.withOpacity(0.2),
+              color: defaultTextColor..withValues(alpha: 0.2),
             ),
 
         if (_errorText != null)
