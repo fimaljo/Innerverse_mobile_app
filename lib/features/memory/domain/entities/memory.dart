@@ -13,6 +13,7 @@ class Memory {
     required this.worldIconTitle,
     this.title,
     this.description,
+    this.images,
   });
 
   factory Memory.fromEmojiOption({
@@ -25,6 +26,7 @@ class Memory {
     required String worldIconTitle,
     String? title,
     String? description,
+    List<String>? images,
   }) {
     return Memory(
       id: id,
@@ -37,6 +39,7 @@ class Memory {
       description: description,
       worldIcon: worldIcon,
       worldIconTitle: worldIconTitle,
+      images: images,
     );
   }
 
@@ -50,11 +53,12 @@ class Memory {
   final String? description;
   final IconData worldIcon;
   final String worldIconTitle;
+  final List<String>? images;
 
   EmojiOption get emojiOption => EmojiOption(
-    riveAsset: riveAsset,
-    label: emojiLabel,
-    gradient: [],
-    particleColor: Colors.white,
-  );
+        riveAsset: riveAsset,
+        label: emojiLabel,
+        gradient: [],
+        particleColor: Colors.white,
+      );
 }

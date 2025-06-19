@@ -26,13 +26,14 @@ class MemoryModelAdapter extends TypeAdapter<MemoryModel> {
       worldIcon: fields[8] as WorldIconModel,
       title: fields[6] as String?,
       description: fields[7] as String?,
+      images: (fields[9] as List?)?.cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, MemoryModel obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,7 +51,9 @@ class MemoryModelAdapter extends TypeAdapter<MemoryModel> {
       ..writeByte(6)
       ..write(obj.title)
       ..writeByte(7)
-      ..write(obj.description);
+      ..write(obj.description)
+      ..writeByte(9)
+      ..write(obj.images);
   }
 
   @override
@@ -81,6 +84,8 @@ _$MemoryModelImpl _$$MemoryModelImplFromJson(Map<String, dynamic> json) =>
           .fromJson(json['worldIcon'] as Map<String, dynamic>),
       title: json['title'] as String?,
       description: json['description'] as String?,
+      images:
+          (json['images'] as List<dynamic>?)?.map((e) => e as String).toList(),
     );
 
 Map<String, dynamic> _$$MemoryModelImplToJson(_$MemoryModelImpl instance) =>
@@ -94,4 +99,5 @@ Map<String, dynamic> _$$MemoryModelImplToJson(_$MemoryModelImpl instance) =>
       'worldIcon': const WorldIconModelConverter().toJson(instance.worldIcon),
       'title': instance.title,
       'description': instance.description,
+      'images': instance.images,
     };

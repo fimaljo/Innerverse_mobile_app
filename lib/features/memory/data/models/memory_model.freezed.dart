@@ -40,6 +40,8 @@ mixin _$MemoryModel {
   String? get title => throw _privateConstructorUsedError;
   @HiveField(7)
   String? get description => throw _privateConstructorUsedError;
+  @HiveField(9)
+  List<String>? get images => throw _privateConstructorUsedError;
 
   /// Serializes this MemoryModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -66,7 +68,8 @@ abstract class $MemoryModelCopyWith<$Res> {
       @HiveField(5) @TimeOfDayConverter() TimeOfDay time,
       @HiveField(8) @WorldIconModelConverter() WorldIconModel worldIcon,
       @HiveField(6) String? title,
-      @HiveField(7) String? description});
+      @HiveField(7) String? description,
+      @HiveField(9) List<String>? images});
 
   $WorldIconModelCopyWith<$Res> get worldIcon;
 }
@@ -95,6 +98,7 @@ class _$MemoryModelCopyWithImpl<$Res, $Val extends MemoryModel>
     Object? worldIcon = null,
     Object? title = freezed,
     Object? description = freezed,
+    Object? images = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -133,6 +137,10 @@ class _$MemoryModelCopyWithImpl<$Res, $Val extends MemoryModel>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String?,
+      images: freezed == images
+          ? _value.images
+          : images // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
     ) as $Val);
   }
 
@@ -164,7 +172,8 @@ abstract class _$$MemoryModelImplCopyWith<$Res>
       @HiveField(5) @TimeOfDayConverter() TimeOfDay time,
       @HiveField(8) @WorldIconModelConverter() WorldIconModel worldIcon,
       @HiveField(6) String? title,
-      @HiveField(7) String? description});
+      @HiveField(7) String? description,
+      @HiveField(9) List<String>? images});
 
   @override
   $WorldIconModelCopyWith<$Res> get worldIcon;
@@ -192,6 +201,7 @@ class __$$MemoryModelImplCopyWithImpl<$Res>
     Object? worldIcon = null,
     Object? title = freezed,
     Object? description = freezed,
+    Object? images = freezed,
   }) {
     return _then(_$MemoryModelImpl(
       id: null == id
@@ -230,6 +240,10 @@ class __$$MemoryModelImplCopyWithImpl<$Res>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String?,
+      images: freezed == images
+          ? _value._images
+          : images // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
     ));
   }
 }
@@ -246,7 +260,9 @@ class _$MemoryModelImpl implements _MemoryModel {
       @HiveField(5) @TimeOfDayConverter() required this.time,
       @HiveField(8) @WorldIconModelConverter() required this.worldIcon,
       @HiveField(6) this.title,
-      @HiveField(7) this.description});
+      @HiveField(7) this.description,
+      @HiveField(9) final List<String>? images})
+      : _images = images;
 
   factory _$MemoryModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$MemoryModelImplFromJson(json);
@@ -280,10 +296,20 @@ class _$MemoryModelImpl implements _MemoryModel {
   @override
   @HiveField(7)
   final String? description;
+  final List<String>? _images;
+  @override
+  @HiveField(9)
+  List<String>? get images {
+    final value = _images;
+    if (value == null) return null;
+    if (_images is EqualUnmodifiableListView) return _images;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
 
   @override
   String toString() {
-    return 'MemoryModel(id: $id, emojiLabel: $emojiLabel, riveAsset: $riveAsset, emotionSliderValue: $emotionSliderValue, dateTime: $dateTime, time: $time, worldIcon: $worldIcon, title: $title, description: $description)';
+    return 'MemoryModel(id: $id, emojiLabel: $emojiLabel, riveAsset: $riveAsset, emotionSliderValue: $emotionSliderValue, dateTime: $dateTime, time: $time, worldIcon: $worldIcon, title: $title, description: $description, images: $images)';
   }
 
   @override
@@ -305,13 +331,24 @@ class _$MemoryModelImpl implements _MemoryModel {
                 other.worldIcon == worldIcon) &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
-                other.description == description));
+                other.description == description) &&
+            const DeepCollectionEquality().equals(other._images, _images));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, emojiLabel, riveAsset,
-      emotionSliderValue, dateTime, time, worldIcon, title, description);
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      emojiLabel,
+      riveAsset,
+      emotionSliderValue,
+      dateTime,
+      time,
+      worldIcon,
+      title,
+      description,
+      const DeepCollectionEquality().hash(_images));
 
   /// Create a copy of MemoryModel
   /// with the given fields replaced by the non-null parameter values.
@@ -341,7 +378,8 @@ abstract class _MemoryModel implements MemoryModel {
       @WorldIconModelConverter()
       required final WorldIconModel worldIcon,
       @HiveField(6) final String? title,
-      @HiveField(7) final String? description}) = _$MemoryModelImpl;
+      @HiveField(7) final String? description,
+      @HiveField(9) final List<String>? images}) = _$MemoryModelImpl;
 
   factory _MemoryModel.fromJson(Map<String, dynamic> json) =
       _$MemoryModelImpl.fromJson;
@@ -375,6 +413,9 @@ abstract class _MemoryModel implements MemoryModel {
   @override
   @HiveField(7)
   String? get description;
+  @override
+  @HiveField(9)
+  List<String>? get images;
 
   /// Create a copy of MemoryModel
   /// with the given fields replaced by the non-null parameter values.

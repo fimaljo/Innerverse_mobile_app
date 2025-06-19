@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
+import 'dart:io';
 
 import 'package:animated_background/animated_background.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:innerverse/core/constants/emoji_options.dart';
 import 'package:innerverse/features/memory/data/models/memory_model.dart';
 import 'package:innerverse/features/memory/domain/entities/emoji_option.dart';
@@ -37,6 +40,7 @@ class MemoryCreationData {
     this.description,
     this.worldIcon,
     this.worldIconTitle,
+    this.images,
   });
 
   EmojiOption emojiOption;
@@ -47,6 +51,7 @@ class MemoryCreationData {
   String? description;
   IconData? worldIcon;
   String? worldIconTitle;
+  List<String>? images;
 
   Memory toMemory() {
     return Memory.fromEmojiOption(
@@ -59,6 +64,7 @@ class MemoryCreationData {
       description: description,
       worldIcon: worldIcon ?? Icons.star,
       worldIconTitle: worldIconTitle ?? 'Default',
+      images: images,
     );
   }
 }
@@ -836,6 +842,8 @@ class _TextFieldStepState extends State<_TextFieldStep> {
   late final StreamSubscription<bool> _keyboardSubscription;
   Timer? _debounceTimer;
   static const _debounceDuration = Duration(milliseconds: 500);
+  final ImagePicker _imagePicker = ImagePicker();
+  List<String> selectedImages = [];
 
   @override
   void initState() {
@@ -855,6 +863,7 @@ class _TextFieldStepState extends State<_TextFieldStep> {
     // Initialize controllers with existing memoryData values
     titleController.text = widget.memoryData.title ?? '';
     noteController.text = widget.memoryData.description ?? '';
+    selectedImages = widget.memoryData.images ?? [];
 
     // Load draft if exists
     _loadDraft();
@@ -869,6 +878,8 @@ class _TextFieldStepState extends State<_TextFieldStep> {
         noteController.text = draft.description ?? '';
         widget.memoryData.title = draft.title;
         widget.memoryData.description = draft.description;
+        selectedImages = draft.images ?? [];
+        widget.memoryData.images = draft.images;
       });
     }
   }
@@ -890,6 +901,7 @@ class _TextFieldStepState extends State<_TextFieldStep> {
       ),
       title: memory.title,
       description: memory.description,
+      images: memory.images,
     );
     await draftBox.put('current_draft', model);
   }
@@ -995,9 +1007,60 @@ class _TextFieldStepState extends State<_TextFieldStep> {
     }
   }
 
+  Future<void> pickImages() async {
+    final List<XFile>? pickedFiles = await _imagePicker.pickMultiImage();
+    if (pickedFiles != null && pickedFiles.isNotEmpty) {
+      final List<String> persistentPaths =
+          await _copyImagesToPersistentStorage(pickedFiles);
+      setState(() {
+        selectedImages.addAll(persistentPaths);
+        widget.memoryData.images = selectedImages;
+      });
+    }
+  }
+
+  Future<List<String>> _copyImagesToPersistentStorage(List<XFile> files) async {
+    final List<String> persistentPaths = [];
+    final appDir = await getApplicationDocumentsDirectory();
+    final imagesDir = Directory('${appDir.path}/memory_images');
+
+    // Create images directory if it doesn't exist
+    if (!await imagesDir.exists()) {
+      await imagesDir.create(recursive: true);
+    }
+
+    for (final file in files) {
+      final fileName = '${const Uuid().v4()}.jpg';
+      final persistentPath = '${imagesDir.path}/$fileName';
+
+      // Copy the file to persistent storage
+      await file.saveTo(persistentPath);
+      persistentPaths.add(persistentPath);
+    }
+
+    return persistentPaths;
+  }
+
+  void removeImage(int index) {
+    if (index >= 0 && index < selectedImages.length) {
+      final imagePath = selectedImages[index];
+      // Delete the file from persistent storage
+      final file = File(imagePath);
+      if (file.existsSync()) {
+        file.deleteSync();
+      }
+
+      setState(() {
+        selectedImages.removeAt(index);
+        widget.memoryData.images = selectedImages;
+      });
+    }
+  }
+
   void _saveMemory() {
     widget.memoryData.title = titleController.text.trim();
     widget.memoryData.description = noteController.text.trim();
+    widget.memoryData.images = selectedImages;
 
     widget.memoryData.toMemory();
     // Clear the draft when saving
@@ -1108,6 +1171,66 @@ class _TextFieldStepState extends State<_TextFieldStep> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+              // Image Picker UI
+              Text('Images', style: textTheme.titleMedium),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 90,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: selectedImages.length + 1,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    if (index == selectedImages.length) {
+                      // Add button
+                      return GestureDetector(
+                        onTap: pickImages,
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceVariant,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: colorScheme.primary),
+                          ),
+                          child:
+                              const Icon(Icons.add_a_photo_rounded, size: 32),
+                        ),
+                      );
+                    }
+                    final imagePath = selectedImages[index];
+                    return Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            File(imagePath),
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 2,
+                          right: 2,
+                          child: GestureDetector(
+                            onTap: () => removeImage(index),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.close,
+                                  color: Colors.white, size: 18),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 16),
               // Title Field

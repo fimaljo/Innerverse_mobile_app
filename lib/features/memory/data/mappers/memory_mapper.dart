@@ -20,6 +20,7 @@ class MemoryMapper {
       ),
       title: memory.title,
       description: memory.description,
+      images: memory.images,
     );
   }
 
@@ -36,6 +37,7 @@ class MemoryMapper {
       worldIconTitle: model.worldIcon.name,
       title: model.title,
       description: model.description,
+      images: model.images,
     );
   }
 

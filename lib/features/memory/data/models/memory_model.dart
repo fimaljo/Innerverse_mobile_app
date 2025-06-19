@@ -19,6 +19,7 @@ class MemoryModel with _$MemoryModel {
     @HiveField(8) @WorldIconModelConverter() required WorldIconModel worldIcon,
     @HiveField(6) String? title,
     @HiveField(7) String? description,
+    @HiveField(9) List<String>? images,
   }) = _MemoryModel;
   factory MemoryModel.fromJson(Map<String, dynamic> json) =>
       _$MemoryModelFromJson(json);

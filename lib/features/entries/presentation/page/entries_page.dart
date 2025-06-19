@@ -9,6 +9,7 @@ import 'package:innerverse/features/memory/presentation/blocs/memory_state.dart'
 import 'package:innerverse/shared/buttons/app_primary_button.dart';
 import 'package:innerverse/shared/widgets/custome_text_field.dart';
 import 'package:intl/intl.dart';
+import 'dart:io';
 
 class EntriesPage extends StatefulWidget {
   const EntriesPage({super.key});
@@ -109,6 +110,113 @@ class _MemoryCard extends StatelessWidget {
   const _MemoryCard({required this.memory});
   final Memory memory;
 
+  void _showImageFullScreen(BuildContext context, String imagePath) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            iconTheme: const IconThemeData(color: Colors.white),
+            title: const Text(
+              'Image',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          body: Center(
+            child: InteractiveViewer(
+              child: Image.file(
+                File(imagePath),
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[900],
+                    child: const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.broken_image,
+                            color: Colors.white,
+                            size: 64,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Image not found',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAllImages(BuildContext context, List<String> images) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            iconTheme: const IconThemeData(color: Colors.white),
+            title: Text(
+              'All Images (${images.length})',
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          body: PageView.builder(
+            itemCount: images.length,
+            itemBuilder: (context, index) {
+              return Center(
+                child: InteractiveViewer(
+                  child: Image.file(
+                    File(images[index]),
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[900],
+                        child: const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.broken_image,
+                                color: Colors.white,
+                                size: 64,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'Image not found',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -161,6 +269,36 @@ class _MemoryCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (memory.images != null && memory.images!.isNotEmpty) ...[
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.photo_library,
+                          color: Colors.white,
+                          size: 12,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${memory.images!.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 Text(
                   memory.emojiLabel,
                   style: const TextStyle(
@@ -189,6 +327,98 @@ class _MemoryCard extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 16,
                       color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                // Image Gallery
+                if (memory.images != null && memory.images!.isNotEmpty) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Images',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      if (memory.images!.length > 3)
+                        GestureDetector(
+                          onTap: () => _showAllImages(context, memory.images!),
+                          child: Text(
+                            'View All (${memory.images!.length})',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 80,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount:
+                          memory.images!.length > 3 ? 3 : memory.images!.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (context, imageIndex) {
+                        final imagePath = memory.images![imageIndex];
+                        return GestureDetector(
+                          onTap: () => _showImageFullScreen(context, imagePath),
+                          child: Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  File(imagePath),
+                                  width: 80,
+                                  height: 80,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      width: 80,
+                                      height: 80,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[300],
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        color: Colors.grey[600],
+                                        size: 24,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              if (imageIndex == 2 && memory.images!.length > 3)
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.black54,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        '+${memory.images!.length - 3}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 12),
