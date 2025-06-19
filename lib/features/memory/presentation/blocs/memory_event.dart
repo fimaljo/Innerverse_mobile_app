@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:innerverse/features/memory/domain/entities/memory.dart';
+import 'package:innerverse/features/memory/domain/entities/memory_creation_data.dart';
 
 abstract class MemoryEvent extends Equatable {
   const MemoryEvent();
@@ -50,4 +51,31 @@ class GetMemoriesByDateRange extends MemoryEvent {
 
 class ClearAllMemories extends MemoryEvent {
   const ClearAllMemories();
+}
+
+// Memory Creation Events
+class InitializeMemoryCreation extends MemoryEvent {
+  const InitializeMemoryCreation(this.initialData);
+
+  final MemoryCreationData initialData;
+
+  @override
+  List<Object?> get props => [initialData];
+}
+
+class UpdateMemoryCreationData extends MemoryEvent {
+  const UpdateMemoryCreationData(this.memoryData);
+
+  final MemoryCreationData memoryData;
+
+  @override
+  List<Object?> get props => [memoryData];
+}
+
+class SaveMemoryDraft extends MemoryEvent {
+  const SaveMemoryDraft();
+}
+
+class CreateMemoryFromData extends MemoryEvent {
+  const CreateMemoryFromData();
 }

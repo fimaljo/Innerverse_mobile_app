@@ -6,6 +6,7 @@ import 'package:innerverse/features/memory/domain/usecases/delete_memory_usecase
 import 'package:innerverse/features/memory/domain/usecases/get_all_memories_usecase.dart';
 import 'package:innerverse/features/memory/domain/usecases/get_memories_by_date_range_usecase.dart';
 import 'package:innerverse/features/memory/domain/usecases/update_memory_usecase.dart';
+import 'package:innerverse/features/memory/domain/usecases/save_memory_draft_usecase.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_event.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_state.dart';
 
@@ -17,19 +18,25 @@ class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
     required DeleteMemoryUseCase deleteMemoryUseCase,
     required GetMemoriesByDateRangeUseCase getMemoriesByDateRangeUseCase,
     required ClearAllMemoriesUseCase clearAllMemoriesUseCase,
-  }) : _getAllMemoriesUseCase = getAllMemoriesUseCase,
-       _addMemoryUseCase = addMemoryUseCase,
-       _updateMemoryUseCase = updateMemoryUseCase,
-       _deleteMemoryUseCase = deleteMemoryUseCase,
-       _getMemoriesByDateRangeUseCase = getMemoriesByDateRangeUseCase,
-       _clearAllMemoriesUseCase = clearAllMemoriesUseCase,
-       super(const MemoryState()) {
+    required SaveMemoryDraftUseCase saveMemoryDraftUseCase,
+  })  : _getAllMemoriesUseCase = getAllMemoriesUseCase,
+        _addMemoryUseCase = addMemoryUseCase,
+        _updateMemoryUseCase = updateMemoryUseCase,
+        _deleteMemoryUseCase = deleteMemoryUseCase,
+        _getMemoriesByDateRangeUseCase = getMemoriesByDateRangeUseCase,
+        _clearAllMemoriesUseCase = clearAllMemoriesUseCase,
+        _saveMemoryDraftUseCase = saveMemoryDraftUseCase,
+        super(const MemoryState()) {
     on<LoadMemories>(_onLoadMemories);
     on<AddMemory>(_onAddMemory);
     on<UpdateMemory>(_onUpdateMemory);
     on<DeleteMemory>(_onDeleteMemory);
     on<GetMemoriesByDateRange>(_onGetMemoriesByDateRange);
     on<ClearAllMemories>(_onClearAllMemories);
+    on<InitializeMemoryCreation>(_onInitializeMemoryCreation);
+    on<UpdateMemoryCreationData>(_onUpdateMemoryCreationData);
+    on<SaveMemoryDraft>(_onSaveMemoryDraft);
+    on<CreateMemoryFromData>(_onCreateMemoryFromData);
   }
 
   final GetAllMemoriesUseCase _getAllMemoriesUseCase;
@@ -38,6 +45,7 @@ class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
   final DeleteMemoryUseCase _deleteMemoryUseCase;
   final GetMemoriesByDateRangeUseCase _getMemoriesByDateRangeUseCase;
   final ClearAllMemoriesUseCase _clearAllMemoriesUseCase;
+  final SaveMemoryDraftUseCase _saveMemoryDraftUseCase;
 
   Future<void> _onLoadMemories(
     LoadMemories event,
@@ -307,6 +315,84 @@ class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
           ),
         );
       }
+    }
+  }
+
+  // Memory Creation Handlers
+  void _onInitializeMemoryCreation(
+    InitializeMemoryCreation event,
+    Emitter<MemoryState> emit,
+  ) {
+    emit(state.copyWith(
+      memoryCreationData: event.initialData,
+      isCreating: true,
+    ));
+  }
+
+  void _onUpdateMemoryCreationData(
+    UpdateMemoryCreationData event,
+    Emitter<MemoryState> emit,
+  ) {
+    emit(state.copyWith(
+      memoryCreationData: event.memoryData,
+    ));
+  }
+
+  Future<void> _onSaveMemoryDraft(
+    SaveMemoryDraft event,
+    Emitter<MemoryState> emit,
+  ) async {
+    if (state.memoryCreationData == null) return;
+
+    try {
+      final result = await _saveMemoryDraftUseCase(state.memoryCreationData!);
+      result.fold(
+        (failure) => emit(state.copyWith(error: failure.toString())),
+        (_) => emit(state.copyWith(isDraftSaved: true)),
+      );
+    } on Exception catch (e) {
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+  Future<void> _onCreateMemoryFromData(
+    CreateMemoryFromData event,
+    Emitter<MemoryState> emit,
+  ) async {
+    if (state.memoryCreationData == null) return;
+
+    emit(state.copyWith(isCreating: true));
+    try {
+      final memory = state.memoryCreationData!.toMemory();
+      final result = await _addMemoryUseCase(memory);
+
+      result.fold(
+        (failure) => emit(state.copyWith(
+          error: failure.toString(),
+          isCreating: false,
+        )),
+        (_) async {
+          // Reload memories after creating new one
+          final memoriesResult = await _getAllMemoriesUseCase(const NoParams());
+          memoriesResult.fold(
+            (failure) => emit(state.copyWith(
+              error: failure.toString(),
+              isCreating: false,
+            )),
+            (memories) => emit(state.copyWith(
+              memories: memories,
+              filteredMemories: memories,
+              isCreating: false,
+              memoryCreationData: null, // Clear creation data
+            )),
+          );
+        },
+      );
+    } on Exception catch (e) {
+      emit(state.copyWith(
+        error: e.toString(),
+        isCreating: false,
+      ));
     }
   }
 }
