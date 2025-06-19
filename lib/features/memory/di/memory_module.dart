@@ -10,6 +10,7 @@ import 'package:innerverse/features/memory/domain/usecases/get_all_memories_usec
 import 'package:innerverse/features/memory/domain/usecases/get_memories_by_date_range_usecase.dart';
 import 'package:innerverse/features/memory/domain/usecases/get_memory_by_id_usecase.dart';
 import 'package:innerverse/features/memory/domain/usecases/update_memory_usecase.dart';
+import 'package:innerverse/features/memory/domain/usecases/save_memory_draft_usecase.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_bloc.dart';
 
 class MemoryModule {
@@ -31,6 +32,7 @@ class MemoryModule {
       ..registerLazySingleton(() => DeleteMemoryUseCase(sl()))
       ..registerLazySingleton(() => GetMemoriesByDateRangeUseCase(sl()))
       ..registerLazySingleton(() => ClearAllMemoriesUseCase(sl()))
+      ..registerLazySingleton(() => SaveMemoryDraftUseCase(sl()))
       // Bloc
       ..registerFactory<MemoryBloc>(
         () => MemoryBloc(
@@ -40,6 +42,7 @@ class MemoryModule {
           deleteMemoryUseCase: sl(),
           getMemoriesByDateRangeUseCase: sl(),
           clearAllMemoriesUseCase: sl(),
+          saveMemoryDraftUseCase: sl(),
         ),
       );
   }

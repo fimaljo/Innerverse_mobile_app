@@ -16,7 +16,9 @@ class MemoryModel with _$MemoryModel {
     @HiveField(3) required double emotionSliderValue,
     @HiveField(4) required DateTime dateTime,
     @HiveField(5) @TimeOfDayConverter() required TimeOfDay time,
-    @HiveField(8) @WorldIconModelConverter() required WorldIconModel worldIcon,
+    @HiveField(8)
+    @WorldIconModelListConverter()
+    required List<WorldIconModel> worldIcons,
     @HiveField(6) String? title,
     @HiveField(7) String? description,
     @HiveField(9) List<String>? images,
@@ -77,6 +79,41 @@ class WorldIconModelConverter
   }
 }
 
+class WorldIconModelListConverter
+    implements JsonConverter<List<WorldIconModel>, List<Map<String, dynamic>>> {
+  const WorldIconModelListConverter();
+
+  @override
+  List<WorldIconModel> fromJson(List<Map<String, dynamic>> json) {
+    return json
+        .map((item) => WorldIconModel(
+              id: item['id'] as String,
+              name: item['name'] as String,
+              icon: IconData(
+                item['icon']['codePoint'] as int,
+                fontFamily: item['icon']['fontFamily'] as String,
+                fontPackage: item['icon']['fontPackage'] as String?,
+              ),
+            ))
+        .toList();
+  }
+
+  @override
+  List<Map<String, dynamic>> toJson(List<WorldIconModel> models) {
+    return models
+        .map((model) => {
+              'id': model.id,
+              'name': model.name,
+              'icon': {
+                'codePoint': model.icon.codePoint,
+                'fontFamily': model.icon.fontFamily,
+                'fontPackage': model.icon.fontPackage,
+              },
+            })
+        .toList();
+  }
+}
+
 class IconDataConverter
     implements JsonConverter<IconData, Map<String, dynamic>> {
   const IconDataConverter();
@@ -97,5 +134,49 @@ class IconDataConverter
       'fontFamily': icon.fontFamily,
       'fontPackage': icon.fontPackage,
     };
+  }
+}
+
+class WorldIconModelListAdapter extends TypeAdapter<List<WorldIconModel>> {
+  @override
+  final int typeId = 10; // Use a unique type ID
+
+  @override
+  List<WorldIconModel> read(BinaryReader reader) {
+    final length = reader.readInt();
+    return List.generate(length, (index) {
+      final numOfFields = reader.readByte();
+      final fields = <int, dynamic>{
+        for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+      };
+      return WorldIconModel(
+        id: fields[0] as String,
+        name: fields[1] as String,
+        icon: IconData(
+          fields[2] as int,
+          fontFamily: fields[3] as String?,
+          fontPackage: fields[4] as String?,
+        ),
+      );
+    });
+  }
+
+  @override
+  void write(BinaryWriter writer, List<WorldIconModel> obj) {
+    writer.writeInt(obj.length);
+    for (final item in obj) {
+      writer
+        ..writeByte(5) // Total number of fields
+        ..writeByte(0)
+        ..write(item.id)
+        ..writeByte(1)
+        ..write(item.name)
+        ..writeByte(2)
+        ..write(item.icon.codePoint)
+        ..writeByte(3)
+        ..write(item.icon.fontFamily)
+        ..writeByte(4)
+        ..write(item.icon.fontPackage);
+    }
   }
 }
