@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:innerverse/features/memory/domain/entities/emoji_option.dart';
+import 'package:innerverse/features/world/data/models/world_icon_model.dart';
 
 class Memory {
   Memory({
@@ -9,8 +10,7 @@ class Memory {
     required this.emotionSliderValue,
     required this.dateTime,
     required this.time,
-    required this.worldIcon,
-    required this.worldIconTitle,
+    required this.worldIcons,
     this.title,
     this.description,
     this.images,
@@ -22,8 +22,7 @@ class Memory {
     required double emotionSliderValue,
     required DateTime dateTime,
     required TimeOfDay time,
-    required IconData worldIcon,
-    required String worldIconTitle,
+    required List<WorldIconModel> worldIcons,
     String? title,
     String? description,
     List<String>? images,
@@ -37,8 +36,7 @@ class Memory {
       time: time,
       title: title,
       description: description,
-      worldIcon: worldIcon,
-      worldIconTitle: worldIconTitle,
+      worldIcons: worldIcons,
       images: images,
     );
   }
@@ -51,9 +49,14 @@ class Memory {
   final TimeOfDay time;
   final String? title;
   final String? description;
-  final IconData worldIcon;
-  final String worldIconTitle;
+  final List<WorldIconModel> worldIcons;
   final List<String>? images;
+
+  // Backward compatibility getters
+  IconData get worldIcon =>
+      worldIcons.isNotEmpty ? worldIcons.first.icon : Icons.star;
+  String get worldIconTitle =>
+      worldIcons.isNotEmpty ? worldIcons.first.name : 'Default';
 
   EmojiOption get emojiOption => EmojiOption(
         riveAsset: riveAsset,

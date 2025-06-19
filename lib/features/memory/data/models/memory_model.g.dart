@@ -23,7 +23,7 @@ class MemoryModelAdapter extends TypeAdapter<MemoryModel> {
       emotionSliderValue: fields[3] as double,
       dateTime: fields[4] as DateTime,
       time: fields[5] as TimeOfDay,
-      worldIcon: fields[8] as WorldIconModel,
+      worldIcons: (fields[8] as List).cast<WorldIconModel>(),
       title: fields[6] as String?,
       description: fields[7] as String?,
       images: (fields[9] as List?)?.cast<String>(),
@@ -47,7 +47,7 @@ class MemoryModelAdapter extends TypeAdapter<MemoryModel> {
       ..writeByte(5)
       ..write(obj.time)
       ..writeByte(8)
-      ..write(obj.worldIcon)
+      ..write(obj.worldIcons)
       ..writeByte(6)
       ..write(obj.title)
       ..writeByte(7)
@@ -80,8 +80,8 @@ _$MemoryModelImpl _$$MemoryModelImplFromJson(Map<String, dynamic> json) =>
       dateTime: DateTime.parse(json['dateTime'] as String),
       time: const TimeOfDayConverter()
           .fromJson(json['time'] as Map<String, dynamic>),
-      worldIcon: const WorldIconModelConverter()
-          .fromJson(json['worldIcon'] as Map<String, dynamic>),
+      worldIcons: const WorldIconModelListConverter()
+          .fromJson(json['worldIcons'] as List<Map<String, dynamic>>),
       title: json['title'] as String?,
       description: json['description'] as String?,
       images:
@@ -96,7 +96,8 @@ Map<String, dynamic> _$$MemoryModelImplToJson(_$MemoryModelImpl instance) =>
       'emotionSliderValue': instance.emotionSliderValue,
       'dateTime': instance.dateTime.toIso8601String(),
       'time': const TimeOfDayConverter().toJson(instance.time),
-      'worldIcon': const WorldIconModelConverter().toJson(instance.worldIcon),
+      'worldIcons':
+          const WorldIconModelListConverter().toJson(instance.worldIcons),
       'title': instance.title,
       'description': instance.description,
       'images': instance.images,

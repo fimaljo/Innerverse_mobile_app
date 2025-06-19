@@ -19,6 +19,7 @@ import 'package:innerverse/features/memory/domain/entities/memory.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_bloc.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_event.dart';
 import 'package:innerverse/features/world/data/models/world_icon_model.dart';
+import 'package:innerverse/features/world/data/mappers/world_mapper.dart';
 import 'package:innerverse/features/world/domain/entities/world.dart';
 import 'package:innerverse/features/world/presentation/blocs/world_bloc.dart';
 import 'package:innerverse/features/world/presentation/blocs/world_event.dart';
@@ -38,8 +39,7 @@ class MemoryCreationData {
     this.time,
     this.title,
     this.description,
-    this.worldIcon,
-    this.worldIconTitle,
+    this.worldIcons = const [],
     this.images,
   });
 
@@ -49,8 +49,7 @@ class MemoryCreationData {
   TimeOfDay? time;
   String? title;
   String? description;
-  IconData? worldIcon;
-  String? worldIconTitle;
+  List<WorldIconModel> worldIcons;
   List<String>? images;
 
   Memory toMemory() {
@@ -62,8 +61,7 @@ class MemoryCreationData {
       time: time ?? TimeOfDay.now(),
       title: title,
       description: description,
-      worldIcon: worldIcon ?? Icons.star,
-      worldIconTitle: worldIconTitle ?? 'Default',
+      worldIcons: worldIcons,
       images: images,
     );
   }
@@ -109,6 +107,7 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
       emotionSliderValue: 5,
       dateTime: DateTime.now(),
       time: TimeOfDay.now(),
+      worldIcons: [],
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -127,15 +126,20 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
     emojiPageController.addListener(() {
       final newIndex = emojiPageController.page?.round() ?? 0;
       if (newIndex != selectedWorldIndex) {
-        setState(() {
-          selectedWorldIndex = newIndex;
+        selectedWorldIndex = newIndex;
+        // Only update worldIcons if we're not in the world display mode (bottomPageIndex != 2)
+        if (bottomPageIndex != 2) {
           final state = context.read<WorldBloc>().state;
           if (selectedWorldIndex >= 0 &&
               selectedWorldIndex < state.worlds.length) {
-            memoryData.worldIcon = state.worlds[selectedWorldIndex].icon;
-            memoryData.worldIconTitle = state.worlds[selectedWorldIndex].name;
+            memoryData.worldIcons = [
+              WorldMapper.toModel(state.worlds[selectedWorldIndex])
+            ];
+            if (mounted) {
+              setState(() {});
+            }
           }
-        });
+        }
       }
     });
   }
@@ -177,19 +181,20 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
   }
 
   void onWorldIconSelected(int index) {
-    setState(() {
-      selectedWorldIndex = index;
-      final state = context.read<WorldBloc>().state;
-      if (index >= 0 && index < state.worlds.length) {
-        memoryData.worldIcon = state.worlds[index].icon;
-        memoryData.worldIconTitle = state.worlds[index].name;
-      }
-    });
+    selectedWorldIndex = index;
+    final state = context.read<WorldBloc>().state;
+    if (index >= 0 && index < state.worlds.length) {
+      memoryData.worldIcons = [WorldMapper.toModel(state.worlds[index])];
+    }
     emojiPageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
+    // Only call setState if the widget is still mounted
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void syncPageControllers() {
@@ -318,61 +323,12 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                             ),
                           ] else ...[
                             Expanded(
-                              child: PageView.builder(
-                                controller: emojiPageController,
-                                itemCount: context
-                                    .read<WorldBloc>()
-                                    .state
-                                    .worlds
-                                    .length,
-                                itemBuilder: (context, index) {
-                                  final isSelected =
-                                      index == selectedWorldIndex;
-                                  return ScaleTransition(
-                                    scale: isSelected
-                                        ? bounceAnimation
-                                        : const AlwaysStoppedAnimation(1),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.all(20),
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            gradient: LinearGradient(
-                                              colors:
-                                                  emojiOptions[selectedIndex]
-                                                      .gradient,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            context
-                                                .read<WorldBloc>()
-                                                .state
-                                                .worlds[index]
-                                                .icon,
-                                            size: 60,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          context
-                                              .read<WorldBloc>()
-                                              .state
-                                              .worlds[index]
-                                              .name,
-                                          textAlign: TextAlign.center,
-                                          style:
-                                              textTheme.headlineLarge?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
+                              child: _WorldIconsDisplay(
+                                worldIcons: memoryData.worldIcons,
+                                selectedIndex: selectedIndex,
+                                emojiPageController: emojiPageController,
+                                bounceAnimation: bounceAnimation,
+                                textTheme: textTheme,
                               ),
                             ),
                           ],
@@ -427,7 +383,9 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                 ),
                 _WorldTypeStep(
                   onWorldIconsChanged: (data) {
-                    // This step doesn't need to handle world icons change
+                    setState(() {
+                      memoryData.worldIcons = data;
+                    });
                   },
                   onBack: () {
                     FocusScope.of(context).unfocus();
@@ -444,8 +402,6 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                   },
                   selectedData: selectedEmoji,
                   memoryData: memoryData,
-                  onWorldIconSelected: onWorldIconSelected,
-                  selectedWorldIndex: selectedWorldIndex,
                 ),
               ],
             ),
@@ -458,13 +414,11 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
 
 class _WorldTypeStep extends StatefulWidget {
   const _WorldTypeStep({
+    required this.onWorldIconsChanged,
     required this.onBack,
     required this.onSubmit,
     required this.selectedData,
-    required this.onWorldIconsChanged,
     required this.memoryData,
-    required this.onWorldIconSelected,
-    required this.selectedWorldIndex,
   });
 
   final VoidCallback onBack;
@@ -472,8 +426,6 @@ class _WorldTypeStep extends StatefulWidget {
   final EmojiOption selectedData;
   final ValueChanged<List<WorldIconModel>> onWorldIconsChanged;
   final MemoryCreationData memoryData;
-  final ValueChanged<int> onWorldIconSelected;
-  final int selectedWorldIndex;
 
   @override
   State<_WorldTypeStep> createState() => _WorldTypeStepState();
@@ -483,11 +435,24 @@ class _WorldTypeStepState extends State<_WorldTypeStep> {
   bool isAdding = false;
   IconData? pickedIcon;
   final TextEditingController nameController = TextEditingController();
+  Set<int> selectedWorldIndices = {};
 
   @override
   void initState() {
     super.initState();
     context.read<WorldBloc>().add(const LoadWorlds());
+
+    // Initialize selected indices based on existing worldIcons
+    if (widget.memoryData.worldIcons.isNotEmpty) {
+      final state = context.read<WorldBloc>().state;
+      for (int i = 0; i < state.worlds.length; i++) {
+        final world = state.worlds[i];
+        if (widget.memoryData.worldIcons
+            .any((w) => w.icon == world.icon && w.name == world.name)) {
+          selectedWorldIndices.add(i);
+        }
+      }
+    }
   }
 
   void _addWorldSymbol() {
@@ -500,13 +465,54 @@ class _WorldTypeStepState extends State<_WorldTypeStep> {
       );
       context.read<WorldBloc>().add(AddWorld(newWorld));
       setState(() {
-        widget.memoryData.worldIcon = pickedIcon;
-        widget.memoryData.worldIconTitle = name;
+        // Add the new world to the selected worlds
+        final newWorldModel = WorldIconModel(
+          id: newWorld.id,
+          name: name,
+          icon: pickedIcon!,
+        );
+        widget.memoryData.worldIcons = [
+          ...widget.memoryData.worldIcons,
+          newWorldModel
+        ];
         nameController.clear();
         pickedIcon = null;
         isAdding = false;
       });
+
+      // Notify parent widget to rebuild
+      widget.onWorldIconsChanged(widget.memoryData.worldIcons);
     }
+  }
+
+  void _toggleWorldSelection(int index) {
+    setState(() {
+      if (selectedWorldIndices.contains(index)) {
+        selectedWorldIndices.remove(index);
+        // Remove from memoryData.worldIcons
+        final state = context.read<WorldBloc>().state;
+        if (index < state.worlds.length) {
+          final worldToRemove = state.worlds[index];
+          widget.memoryData.worldIcons.removeWhere(
+            (w) => w.icon == worldToRemove.icon && w.name == worldToRemove.name,
+          );
+        }
+      } else {
+        selectedWorldIndices.add(index);
+        // Add to memoryData.worldIcons
+        final state = context.read<WorldBloc>().state;
+        if (index < state.worlds.length) {
+          final worldToAdd = WorldMapper.toModel(state.worlds[index]);
+          widget.memoryData.worldIcons = [
+            ...widget.memoryData.worldIcons,
+            worldToAdd
+          ];
+        }
+      }
+    });
+
+    // Notify parent widget to rebuild
+    widget.onWorldIconsChanged(widget.memoryData.worldIcons);
   }
 
   void _saveMemory() {
@@ -540,14 +546,21 @@ class _WorldTypeStepState extends State<_WorldTypeStep> {
     final colorScheme = theme.colorScheme;
     return BlocListener<WorldBloc, WorldState>(
       listener: (context, state) {
-        // When worlds are loaded, sync the selected index
+        // When worlds are loaded, sync the selected indices
         if (!state.isLoading && state.worlds.isNotEmpty) {
-          if (widget.memoryData.worldIcon != null) {
-            final worldIndex = state.worlds.indexWhere(
-              (world) => world.icon == widget.memoryData.worldIcon,
-            );
-            if (worldIndex != -1 && worldIndex != widget.selectedWorldIndex) {
-              widget.onWorldIconSelected(worldIndex);
+          if (widget.memoryData.worldIcons.isNotEmpty) {
+            final newSelectedIndices = <int>{};
+            for (int i = 0; i < state.worlds.length; i++) {
+              final world = state.worlds[i];
+              if (widget.memoryData.worldIcons
+                  .any((w) => w.icon == world.icon && w.name == world.name)) {
+                newSelectedIndices.add(i);
+              }
+            }
+            if (newSelectedIndices != selectedWorldIndices) {
+              setState(() {
+                selectedWorldIndices = newSelectedIndices;
+              });
             }
           }
         }
@@ -579,7 +592,7 @@ class _WorldTypeStepState extends State<_WorldTypeStep> {
                         cornerSide: ButtonCornerSide.right,
                         gradientColors: widget.selectedData.gradient,
                         child: const Icon(
-                          Icons.check,
+                          Icons.arrow_forward_ios_rounded,
                           color: Colors.white,
                         ),
                       ),
@@ -598,13 +611,49 @@ class _WorldTypeStepState extends State<_WorldTypeStep> {
                           child: Text(
                             isAdding
                                 ? 'Create Your World Symbol'
-                                : 'Pick Your World Symbols',
+                                : 'Pick Your World Symbols (${selectedWorldIndices.length} selected)',
                             style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                         if (!isAdding) ...[
+                          if (selectedWorldIndices.isNotEmpty) ...[
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${selectedWorldIndices.length} world${selectedWorldIndices.length == 1 ? '' : 's'} selected',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: widget.selectedData.gradient.first,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        selectedWorldIndices.clear();
+                                        widget.memoryData.worldIcons.clear();
+                                      });
+                                    },
+                                    child: Text(
+                                      'Clear All',
+                                      style: TextStyle(
+                                        color:
+                                            widget.selectedData.gradient.first,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
                           Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -618,10 +667,9 @@ class _WorldTypeStepState extends State<_WorldTypeStep> {
                                   final index = entry.key;
                                   final item = entry.value;
                                   final isSelected =
-                                      index == widget.selectedWorldIndex;
+                                      selectedWorldIndices.contains(index);
                                   return GestureDetector(
-                                    onTap: () =>
-                                        widget.onWorldIconSelected(index),
+                                    onTap: () => _toggleWorldSelection(index),
                                     child: SizedBox(
                                       width: MediaQuery.of(context).size.width /
                                               4 -
@@ -880,6 +928,7 @@ class _TextFieldStepState extends State<_TextFieldStep> {
         widget.memoryData.description = draft.description;
         selectedImages = draft.images ?? [];
         widget.memoryData.images = draft.images;
+        widget.memoryData.worldIcons = draft.worldIcons;
       });
     }
   }
@@ -894,11 +943,7 @@ class _TextFieldStepState extends State<_TextFieldStep> {
       emotionSliderValue: memory.emotionSliderValue,
       dateTime: memory.dateTime,
       time: memory.time,
-      worldIcon: WorldIconModel(
-        id: const Uuid().v4(),
-        name: widget.memoryData.worldIconTitle ?? 'Default',
-        icon: widget.memoryData.worldIcon ?? Icons.star,
-      ),
+      worldIcons: widget.memoryData.worldIcons,
       title: memory.title,
       description: memory.description,
       images: memory.images,
@@ -1551,4 +1596,151 @@ class GradientArcPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class _WorldIconsDisplay extends StatefulWidget {
+  const _WorldIconsDisplay({
+    required this.worldIcons,
+    required this.selectedIndex,
+    required this.emojiPageController,
+    required this.bounceAnimation,
+    required this.textTheme,
+  });
+
+  final List<WorldIconModel> worldIcons;
+  final int selectedIndex;
+  final PageController emojiPageController;
+  final CurvedAnimation bounceAnimation;
+  final TextTheme textTheme;
+
+  @override
+  State<_WorldIconsDisplay> createState() => _WorldIconsDisplayState();
+}
+
+class _WorldIconsDisplayState extends State<_WorldIconsDisplay> {
+  int currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.emojiPageController.addListener(_onPageChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.emojiPageController.removeListener(_onPageChanged);
+    super.dispose();
+  }
+
+  void _onPageChanged() {
+    final page = widget.emojiPageController.page?.round() ?? 0;
+    if (page != currentPage) {
+      setState(() {
+        currentPage = page;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return widget.worldIcons.isNotEmpty
+        ? Column(
+            children: [
+              Expanded(
+                child: PageView.builder(
+                  controller: widget.emojiPageController,
+                  physics: const BouncingScrollPhysics(), // Add scroll physics
+                  itemCount: widget.worldIcons.length,
+                  itemBuilder: (context, index) {
+                    final worldIcon = widget.worldIcons[index];
+                    return ScaleTransition(
+                      scale: index == widget.selectedIndex
+                          ? widget.bounceAnimation
+                          : const AlwaysStoppedAnimation(1),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors:
+                                    emojiOptions[widget.selectedIndex].gradient,
+                              ),
+                            ),
+                            child: Icon(
+                              worldIcon.icon,
+                              size: 60,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            '${worldIcon.name} (${index + 1}/${widget.worldIcons.length})', // Added debug info
+                            textAlign: TextAlign.center,
+                            style: widget.textTheme.headlineLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              // Add page indicator
+              if (widget.worldIcons.length > 1)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      widget.worldIcons.length,
+                      (index) => Container(
+                        width: 8,
+                        height: 8,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: index == currentPage
+                              ? Colors.white
+                              : Colors.white.withOpacity(0.5),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          )
+        : Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: emojiOptions[widget.selectedIndex].gradient,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.add,
+                  size: 60,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Select World Symbols',
+                textAlign: TextAlign.center,
+                style: widget.textTheme.headlineLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          );
+  }
 }

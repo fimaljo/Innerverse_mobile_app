@@ -34,8 +34,8 @@ mixin _$MemoryModel {
   @TimeOfDayConverter()
   TimeOfDay get time => throw _privateConstructorUsedError;
   @HiveField(8)
-  @WorldIconModelConverter()
-  WorldIconModel get worldIcon => throw _privateConstructorUsedError;
+  @WorldIconModelListConverter()
+  List<WorldIconModel> get worldIcons => throw _privateConstructorUsedError;
   @HiveField(6)
   String? get title => throw _privateConstructorUsedError;
   @HiveField(7)
@@ -66,12 +66,12 @@ abstract class $MemoryModelCopyWith<$Res> {
       @HiveField(3) double emotionSliderValue,
       @HiveField(4) DateTime dateTime,
       @HiveField(5) @TimeOfDayConverter() TimeOfDay time,
-      @HiveField(8) @WorldIconModelConverter() WorldIconModel worldIcon,
+      @HiveField(8)
+      @WorldIconModelListConverter()
+      List<WorldIconModel> worldIcons,
       @HiveField(6) String? title,
       @HiveField(7) String? description,
       @HiveField(9) List<String>? images});
-
-  $WorldIconModelCopyWith<$Res> get worldIcon;
 }
 
 /// @nodoc
@@ -95,7 +95,7 @@ class _$MemoryModelCopyWithImpl<$Res, $Val extends MemoryModel>
     Object? emotionSliderValue = null,
     Object? dateTime = null,
     Object? time = null,
-    Object? worldIcon = null,
+    Object? worldIcons = null,
     Object? title = freezed,
     Object? description = freezed,
     Object? images = freezed,
@@ -125,10 +125,10 @@ class _$MemoryModelCopyWithImpl<$Res, $Val extends MemoryModel>
           ? _value.time
           : time // ignore: cast_nullable_to_non_nullable
               as TimeOfDay,
-      worldIcon: null == worldIcon
-          ? _value.worldIcon
-          : worldIcon // ignore: cast_nullable_to_non_nullable
-              as WorldIconModel,
+      worldIcons: null == worldIcons
+          ? _value.worldIcons
+          : worldIcons // ignore: cast_nullable_to_non_nullable
+              as List<WorldIconModel>,
       title: freezed == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -142,16 +142,6 @@ class _$MemoryModelCopyWithImpl<$Res, $Val extends MemoryModel>
           : images // ignore: cast_nullable_to_non_nullable
               as List<String>?,
     ) as $Val);
-  }
-
-  /// Create a copy of MemoryModel
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $WorldIconModelCopyWith<$Res> get worldIcon {
-    return $WorldIconModelCopyWith<$Res>(_value.worldIcon, (value) {
-      return _then(_value.copyWith(worldIcon: value) as $Val);
-    });
   }
 }
 
@@ -170,13 +160,12 @@ abstract class _$$MemoryModelImplCopyWith<$Res>
       @HiveField(3) double emotionSliderValue,
       @HiveField(4) DateTime dateTime,
       @HiveField(5) @TimeOfDayConverter() TimeOfDay time,
-      @HiveField(8) @WorldIconModelConverter() WorldIconModel worldIcon,
+      @HiveField(8)
+      @WorldIconModelListConverter()
+      List<WorldIconModel> worldIcons,
       @HiveField(6) String? title,
       @HiveField(7) String? description,
       @HiveField(9) List<String>? images});
-
-  @override
-  $WorldIconModelCopyWith<$Res> get worldIcon;
 }
 
 /// @nodoc
@@ -198,7 +187,7 @@ class __$$MemoryModelImplCopyWithImpl<$Res>
     Object? emotionSliderValue = null,
     Object? dateTime = null,
     Object? time = null,
-    Object? worldIcon = null,
+    Object? worldIcons = null,
     Object? title = freezed,
     Object? description = freezed,
     Object? images = freezed,
@@ -228,10 +217,10 @@ class __$$MemoryModelImplCopyWithImpl<$Res>
           ? _value.time
           : time // ignore: cast_nullable_to_non_nullable
               as TimeOfDay,
-      worldIcon: null == worldIcon
-          ? _value.worldIcon
-          : worldIcon // ignore: cast_nullable_to_non_nullable
-              as WorldIconModel,
+      worldIcons: null == worldIcons
+          ? _value._worldIcons
+          : worldIcons // ignore: cast_nullable_to_non_nullable
+              as List<WorldIconModel>,
       title: freezed == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -258,11 +247,14 @@ class _$MemoryModelImpl implements _MemoryModel {
       @HiveField(3) required this.emotionSliderValue,
       @HiveField(4) required this.dateTime,
       @HiveField(5) @TimeOfDayConverter() required this.time,
-      @HiveField(8) @WorldIconModelConverter() required this.worldIcon,
+      @HiveField(8)
+      @WorldIconModelListConverter()
+      required final List<WorldIconModel> worldIcons,
       @HiveField(6) this.title,
       @HiveField(7) this.description,
       @HiveField(9) final List<String>? images})
-      : _images = images;
+      : _worldIcons = worldIcons,
+        _images = images;
 
   factory _$MemoryModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$MemoryModelImplFromJson(json);
@@ -286,10 +278,16 @@ class _$MemoryModelImpl implements _MemoryModel {
   @HiveField(5)
   @TimeOfDayConverter()
   final TimeOfDay time;
+  final List<WorldIconModel> _worldIcons;
   @override
   @HiveField(8)
-  @WorldIconModelConverter()
-  final WorldIconModel worldIcon;
+  @WorldIconModelListConverter()
+  List<WorldIconModel> get worldIcons {
+    if (_worldIcons is EqualUnmodifiableListView) return _worldIcons;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_worldIcons);
+  }
+
   @override
   @HiveField(6)
   final String? title;
@@ -309,7 +307,7 @@ class _$MemoryModelImpl implements _MemoryModel {
 
   @override
   String toString() {
-    return 'MemoryModel(id: $id, emojiLabel: $emojiLabel, riveAsset: $riveAsset, emotionSliderValue: $emotionSliderValue, dateTime: $dateTime, time: $time, worldIcon: $worldIcon, title: $title, description: $description, images: $images)';
+    return 'MemoryModel(id: $id, emojiLabel: $emojiLabel, riveAsset: $riveAsset, emotionSliderValue: $emotionSliderValue, dateTime: $dateTime, time: $time, worldIcons: $worldIcons, title: $title, description: $description, images: $images)';
   }
 
   @override
@@ -327,8 +325,8 @@ class _$MemoryModelImpl implements _MemoryModel {
             (identical(other.dateTime, dateTime) ||
                 other.dateTime == dateTime) &&
             (identical(other.time, time) || other.time == time) &&
-            (identical(other.worldIcon, worldIcon) ||
-                other.worldIcon == worldIcon) &&
+            const DeepCollectionEquality()
+                .equals(other._worldIcons, _worldIcons) &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -345,7 +343,7 @@ class _$MemoryModelImpl implements _MemoryModel {
       emotionSliderValue,
       dateTime,
       time,
-      worldIcon,
+      const DeepCollectionEquality().hash(_worldIcons),
       title,
       description,
       const DeepCollectionEquality().hash(_images));
@@ -375,8 +373,8 @@ abstract class _MemoryModel implements MemoryModel {
       @HiveField(4) required final DateTime dateTime,
       @HiveField(5) @TimeOfDayConverter() required final TimeOfDay time,
       @HiveField(8)
-      @WorldIconModelConverter()
-      required final WorldIconModel worldIcon,
+      @WorldIconModelListConverter()
+      required final List<WorldIconModel> worldIcons,
       @HiveField(6) final String? title,
       @HiveField(7) final String? description,
       @HiveField(9) final List<String>? images}) = _$MemoryModelImpl;
@@ -405,8 +403,8 @@ abstract class _MemoryModel implements MemoryModel {
   TimeOfDay get time;
   @override
   @HiveField(8)
-  @WorldIconModelConverter()
-  WorldIconModel get worldIcon;
+  @WorldIconModelListConverter()
+  List<WorldIconModel> get worldIcons;
   @override
   @HiveField(6)
   String? get title;

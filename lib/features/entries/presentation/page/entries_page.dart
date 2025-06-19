@@ -253,10 +253,19 @@ class _MemoryCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  memory.worldIcon,
-                  color: Colors.white,
-                  size: 24,
+                Row(
+                  children: memory.worldIcons
+                      .map(
+                        (worldIcon) => Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Icon(
+                            worldIcon.icon,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                      )
+                      .toList(),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
