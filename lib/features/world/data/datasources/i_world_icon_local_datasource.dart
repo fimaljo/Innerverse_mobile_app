@@ -1,4 +1,3 @@
-import 'package:innerverse/features/memory/data/models/memory_model.dart';
 import 'package:innerverse/features/world/data/models/world_icon_model.dart';
 
 /// Interface for local memory data source operations

@@ -21,7 +21,7 @@ class WorldMapper {
   }
 
   static List<WorldIconModel> toModelList(List<World> worlds) {
-    return worlds.map((world) => toModel(world)).toList();
+    return worlds.map(toModel).toList();
   }
 
   static List<World> toEntityList(
@@ -29,10 +29,6 @@ class WorldMapper {
     required Map<String, DateTime> createdAts,
     required Map<String, DateTime> updatedAts,
   }) {
-    return models
-        .map((model) => toEntity(
-              model,
-            ))
-        .toList();
+    return models.map(toEntity).toList();
   }
 }

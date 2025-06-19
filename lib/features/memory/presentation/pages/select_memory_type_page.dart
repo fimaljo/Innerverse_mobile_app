@@ -143,6 +143,15 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
     super.dispose();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Sync page controllers when dependencies change (e.g., when navigating back)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      syncPageControllers();
+    });
+  }
+
   void onEmojiSelected(int index, {bool fromBottom = false}) {
     if (fromBottom) {
       pageController.animateToPage(
@@ -152,7 +161,11 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
       );
     }
 
-    setState(() => selectedIndex = index);
+    setState(() {
+      selectedIndex = index;
+      // Update memoryData with the new emoji option
+      memoryData.emojiOption = emojiOptions[index];
+    });
     animationController.forward(from: 0);
     HapticFeedback.lightImpact();
   }
@@ -171,6 +184,28 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
+  }
+
+  void syncPageControllers() {
+    // Sync the main page controller with the selected emoji index
+    if (pageController.hasClients &&
+        pageController.page?.round() != selectedIndex) {
+      pageController.animateToPage(
+        selectedIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+
+    // Sync the emoji page controller with the selected world index
+    if (emojiPageController.hasClients &&
+        emojiPageController.page?.round() != selectedWorldIndex) {
+      emojiPageController.animateToPage(
+        selectedWorldIndex,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   @override
@@ -497,76 +532,141 @@ class _WorldTypeStepState extends State<_WorldTypeStep> {
 
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
-    return BlocBuilder<WorldBloc, WorldState>(
-      builder: (context, state) {
-        return Scaffold(
-          bottomNavigationBar: !isAdding
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    AppPrimaryButton(
-                      onTap: widget.onBack,
-                      height: 80,
-                      maxWidth: 70,
-                      minWidth: 70,
-                      cornerSide: ButtonCornerSide.left,
-                      gradientColors: widget.selectedData.gradient,
-                      child: const Icon(
-                        Icons.arrow_back_ios_rounded,
-                        color: Colors.white,
-                      ),
-                    ),
-                    AppPrimaryButton(
-                      onTap: _saveMemory,
-                      height: 80,
-                      maxWidth: 70,
-                      minWidth: 70,
-                      cornerSide: ButtonCornerSide.right,
-                      gradientColors: widget.selectedData.gradient,
-                      child: const Icon(
-                        Icons.check,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                )
-              : const SizedBox.shrink(),
-          body: state.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return BlocListener<WorldBloc, WorldState>(
+      listener: (context, state) {
+        // When worlds are loaded, sync the selected index
+        if (!state.isLoading && state.worlds.isNotEmpty) {
+          if (widget.memoryData.worldIcon != null) {
+            final worldIndex = state.worlds.indexWhere(
+              (world) => world.icon == widget.memoryData.worldIcon,
+            );
+            if (worldIndex != -1 && worldIndex != widget.selectedWorldIndex) {
+              widget.onWorldIconSelected(worldIndex);
+            }
+          }
+        }
+      },
+      child: BlocBuilder<WorldBloc, WorldState>(
+        builder: (context, state) {
+          return Scaffold(
+            bottomNavigationBar: !isAdding
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Padding(
-                        padding:
-                            const EdgeInsets.only(left: 16, right: 16, top: 20),
-                        child: Text(
-                          isAdding
-                              ? 'Create Your World Symbol'
-                              : 'Pick Your World Symbols',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      AppPrimaryButton(
+                        onTap: widget.onBack,
+                        height: 80,
+                        maxWidth: 70,
+                        minWidth: 70,
+                        cornerSide: ButtonCornerSide.left,
+                        gradientColors: widget.selectedData.gradient,
+                        child: const Icon(
+                          Icons.arrow_back_ios_rounded,
+                          color: Colors.white,
                         ),
                       ),
-                      if (!isAdding) ...[
+                      AppPrimaryButton(
+                        onTap: _saveMemory,
+                        height: 80,
+                        maxWidth: 70,
+                        minWidth: 70,
+                        cornerSide: ButtonCornerSide.right,
+                        gradientColors: widget.selectedData.gradient,
+                        child: const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+            body: state.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 20,
+                          padding: const EdgeInsets.only(
+                              left: 16, right: 16, top: 20),
+                          child: Text(
+                            isAdding
+                                ? 'Create Your World Symbol'
+                                : 'Pick Your World Symbols',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          child: Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: [
-                              ...state.worlds.asMap().entries.map((entry) {
-                                final index = entry.key;
-                                final item = entry.value;
-                                final isSelected =
-                                    index == widget.selectedWorldIndex;
-                                return GestureDetector(
-                                  onTap: () =>
-                                      widget.onWorldIconSelected(index),
+                        ),
+                        if (!isAdding) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 20,
+                            ),
+                            child: Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: [
+                                ...state.worlds.asMap().entries.map((entry) {
+                                  final index = entry.key;
+                                  final item = entry.value;
+                                  final isSelected =
+                                      index == widget.selectedWorldIndex;
+                                  return GestureDetector(
+                                    onTap: () =>
+                                        widget.onWorldIconSelected(index),
+                                    child: SizedBox(
+                                      width: MediaQuery.of(context).size.width /
+                                              4 -
+                                          24,
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: isSelected
+                                                  ? widget.selectedData.gradient
+                                                      .first
+                                                  : Colors.grey[200],
+                                              border: isSelected
+                                                  ? Border.all(
+                                                      color: widget.selectedData
+                                                          .gradient.last,
+                                                      width: 2,
+                                                    )
+                                                  : null,
+                                            ),
+                                            child: Icon(
+                                              item.icon,
+                                              size: 28,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : Colors.grey[800],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            item.name,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: isSelected
+                                                  ? widget.selectedData.gradient
+                                                      .first
+                                                  : Colors.black,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }),
+                                GestureDetector(
+                                  onTap: () => setState(() => isAdding = true),
                                   child: SizedBox(
                                     width:
                                         MediaQuery.of(context).size.width / 4 -
@@ -578,181 +678,132 @@ class _WorldTypeStepState extends State<_WorldTypeStep> {
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
-                                            color: isSelected
-                                                ? widget
-                                                    .selectedData.gradient.first
-                                                : Colors.grey[200],
-                                            border: isSelected
-                                                ? Border.all(
-                                                    color: widget.selectedData
-                                                        .gradient.last,
-                                                    width: 2,
-                                                  )
-                                                : null,
+                                            gradient: LinearGradient(
+                                              colors:
+                                                  widget.selectedData.gradient,
+                                            ),
                                           ),
-                                          child: Icon(
-                                            item.icon,
-                                            size: 28,
-                                            color: isSelected
-                                                ? Colors.white
-                                                : Colors.grey[800],
-                                          ),
+                                          child: const Icon(Icons.add,
+                                              color: Colors.white),
                                         ),
                                         const SizedBox(height: 6),
-                                        Text(
-                                          item.name,
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: isSelected
-                                                ? widget
-                                                    .selectedData.gradient.first
-                                                : Colors.black,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                          textAlign: TextAlign.center,
-                                        ),
+                                        const Text('Add',
+                                            style: TextStyle(fontSize: 11)),
                                       ],
                                     ),
                                   ),
-                                );
-                              }),
-                              GestureDetector(
-                                onTap: () => setState(() => isAdding = true),
-                                child: SizedBox(
-                                  width: MediaQuery.of(context).size.width / 4 -
-                                      24,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          gradient: LinearGradient(
-                                            colors:
-                                                widget.selectedData.gradient,
-                                          ),
-                                        ),
-                                        child: const Icon(Icons.add,
-                                            color: Colors.white),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      const Text('Add',
-                                          style: TextStyle(fontSize: 11)),
-                                    ],
-                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                      if (isAdding) ...[
-                        const SizedBox(height: 20),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: CustomeTextField(
-                            controller: nameController,
-                            hintText: 'Add World Name...',
-                            fontSize: 16,
-                            validator: (p0) {
-                              return null;
-                            },
-                            textStyle: textTheme.titleMedium,
-                            animateHint: true,
-                            hintColor: colorScheme.outlineVariant,
-                            textColor: Colors.black,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Text(
-                            'Choose an Icon',
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
+                              ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: allIcons.map((icon) {
-                              final isSelected = pickedIcon == icon;
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    pickedIcon = icon;
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.grey[200],
-                                    border: isSelected
-                                        ? Border.all(
-                                            color:
-                                                colorScheme.onPrimaryContainer,
-                                          )
-                                        : null,
-                                  ),
-                                  child: Icon(
-                                    icon,
-                                    size: 28,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
+                        ],
+                        if (isAdding) ...[
+                          const SizedBox(height: 20),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: CustomeTextField(
+                              controller: nameController,
+                              hintText: 'Add World Name...',
+                              fontSize: 16,
+                              validator: (p0) {
+                                return null;
+                              },
+                              textStyle: textTheme.titleMedium,
+                              animateHint: true,
+                              hintColor: colorScheme.outlineVariant,
+                              textColor: Colors.black,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Row(
-                            children: [
-                              AppPrimaryButton(
-                                onTap: _addWorldSymbol,
-                                height: 50,
-                                maxWidth: 50,
-                                minWidth: 50,
-                                gradientColors: widget.selectedData.gradient,
-                                child: const Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                ),
+                          const SizedBox(height: 12),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
+                              'Choose an Icon',
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
                               ),
-                              const SizedBox(width: 8),
-                              AppPrimaryButton(
-                                onTap: () {
-                                  setState(() {
-                                    isAdding = false;
-                                    nameController.clear();
-                                    pickedIcon = null;
-                                  });
-                                },
-                                height: 50,
-                                maxWidth: 50,
-                                minWidth: 50,
-                                gradientColors: widget.selectedData.gradient,
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 10),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: allIcons.map((icon) {
+                                final isSelected = pickedIcon == icon;
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      pickedIcon = icon;
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.grey[200],
+                                      border: isSelected
+                                          ? Border.all(
+                                              color: colorScheme
+                                                  .onPrimaryContainer,
+                                            )
+                                          : null,
+                                    ),
+                                    child: Icon(
+                                      icon,
+                                      size: 28,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Row(
+                              children: [
+                                AppPrimaryButton(
+                                  onTap: _addWorldSymbol,
+                                  height: 50,
+                                  maxWidth: 50,
+                                  minWidth: 50,
+                                  gradientColors: widget.selectedData.gradient,
+                                  child: const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                AppPrimaryButton(
+                                  onTap: () {
+                                    setState(() {
+                                      isAdding = false;
+                                      nameController.clear();
+                                      pickedIcon = null;
+                                    });
+                                  },
+                                  height: 50,
+                                  maxWidth: 50,
+                                  minWidth: 50,
+                                  gradientColors: widget.selectedData.gradient,
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
@@ -800,6 +851,10 @@ class _TextFieldStepState extends State<_TextFieldStep> {
         isKeyboardVisible = visible;
       });
     });
+
+    // Initialize controllers with existing memoryData values
+    titleController.text = widget.memoryData.title ?? '';
+    noteController.text = widget.memoryData.description ?? '';
 
     // Load draft if exists
     _loadDraft();
@@ -1191,6 +1246,7 @@ class _MemoryTypeStep extends StatelessWidget {
               memoryData.emotionSliderValue = value;
             },
             onNextPressed: onNextPressed,
+            initialValue: memoryData.emotionSliderValue,
           ),
         ),
       ],
@@ -1204,12 +1260,14 @@ class HalfCircleSliderWithAppButton extends StatefulWidget {
     required this.onChanged,
     required this.selectedData,
     required this.onNextPressed,
+    required this.initialValue,
     super.key,
   });
   final List<Color> gradientColors;
   final void Function(double value) onChanged;
   final EmojiOption selectedData;
   final VoidCallback onNextPressed;
+  final double initialValue;
 
   @override
   State<HalfCircleSliderWithAppButton> createState() =>
@@ -1218,7 +1276,13 @@ class HalfCircleSliderWithAppButton extends StatefulWidget {
 
 class _HalfCircleSliderWithAppButtonState
     extends State<HalfCircleSliderWithAppButton> {
-  double sliderValue = 5;
+  late double sliderValue;
+
+  @override
+  void initState() {
+    super.initState();
+    sliderValue = widget.initialValue;
+  }
 
   void _updateSlider(Offset localPosition, Size size) {
     final center = Offset(size.width / 2, size.height);
