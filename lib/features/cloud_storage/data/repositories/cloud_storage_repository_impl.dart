@@ -19,8 +19,8 @@ class CloudStorageRepositoryImpl implements CloudStorageRepository {
   @override
   Future<Either<CloudStorageFailure, bool>> authenticate() async {
     try {
-      final isAuthenticated = await remoteDataSource.authenticate();
-      return Right(isAuthenticated);
+      await remoteDataSource.authenticate();
+      return const Right(true);
     } catch (e) {
       return Left(CloudStorageFailure.authenticationError(e.toString()));
     }
@@ -37,12 +37,12 @@ class CloudStorageRepositoryImpl implements CloudStorageRepository {
   }
 
   @override
-  Future<Either<CloudStorageFailure, void>> signOut() async {
+  Future<Either<CloudStorageFailure, bool>> signOut() async {
     try {
       await remoteDataSource.signOut();
       await localDataSource.clearAuthToken();
       await localDataSource.clearAllSyncData();
-      return const Right(null);
+      return const Right(true);
     } catch (e) {
       return Left(CloudStorageFailure.unknownError(e.toString()));
     }
@@ -220,12 +220,12 @@ class CloudStorageRepositoryImpl implements CloudStorageRepository {
   }
 
   @override
-  Future<Either<CloudStorageFailure, void>> saveSyncMetadata(
+  Future<Either<CloudStorageFailure, bool>> saveSyncMetadata(
     SyncMetadata metadata,
   ) async {
     try {
       await localDataSource.saveSyncMetadata(metadata.toModel());
-      return const Right(null);
+      return const Right(true);
     } catch (e) {
       return Left(CloudStorageFailure.serverError(e.toString()));
     }
@@ -243,10 +243,10 @@ class CloudStorageRepositoryImpl implements CloudStorageRepository {
   }
 
   @override
-  Future<Either<CloudStorageFailure, void>> deleteFile(String fileId) async {
+  Future<Either<CloudStorageFailure, bool>> deleteFile(String fileId) async {
     try {
       await remoteDataSource.deleteFile(fileId);
-      return const Right(null);
+      return const Right(true);
     } catch (e) {
       return Left(CloudStorageFailure.serverError(e.toString()));
     }

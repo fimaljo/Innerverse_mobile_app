@@ -1,9 +1,13 @@
+import 'dart:io';
+import 'dart:typed_data';
+import '../models/sync_metadata_model.dart';
+
 abstract class CloudStorageRemoteDataSource {
   /// Initialize Google Drive API client
   Future<void> initialize();
 
   /// Authenticate with Google Drive
-  Future<bool> authenticate();
+  Future<void> authenticate();
 
   /// Check if user is authenticated
   Future<bool> isAuthenticated();
@@ -42,4 +46,22 @@ abstract class CloudStorageRemoteDataSource {
 
   /// Get or create images folder
   Future<String> getOrCreateImagesFolder();
+
+  /// Upload Hive box to Google Drive
+  Future<String> uploadHiveBox(Uint8List data);
+
+  /// Download Hive box from Google Drive
+  Future<Uint8List> downloadHiveBox();
+
+  /// Upload image to Google Drive
+  Future<String> uploadImage(File imageFile, {String? customName});
+
+  /// Download image from Google Drive
+  Future<File> downloadImage(String fileId, String localPath);
+
+  /// Upload sync metadata
+  Future<SyncMetadataModel> uploadSyncMetadata(SyncMetadataModel metadata);
+
+  /// Download sync metadata
+  Future<SyncMetadataModel?> downloadSyncMetadata();
 }

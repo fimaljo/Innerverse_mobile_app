@@ -73,6 +73,12 @@ dependencies:
   google_sign_in: ^6.1.0
   crypto: ^3.0.0
   flutter_secure_storage: ^9.0.0
+  
+  # Image processing and background tasks
+  flutter_image_compress: ^2.1.0
+  connectivity_plus: ^5.0.2
+  shared_preferences: ^2.2.2
+  cached_network_image: ^3.3.0
 
 dev_dependencies:
   flutter_test:

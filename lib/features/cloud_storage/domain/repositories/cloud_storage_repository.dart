@@ -10,7 +10,7 @@ abstract class CloudStorageRepository {
   Future<Either<CloudStorageFailure, bool>> isAuthenticated();
 
   /// Sign out from Google Drive
-  Future<Either<CloudStorageFailure, void>> signOut();
+  Future<Either<CloudStorageFailure, bool>> signOut();
 
   /// Upload Hive box data to Google Drive
   Future<Either<CloudStorageFailure, String>> uploadHiveBox(
@@ -51,7 +51,7 @@ abstract class CloudStorageRepository {
   Future<Either<CloudStorageFailure, SyncMetadata>> getSyncMetadata();
 
   /// Save sync metadata
-  Future<Either<CloudStorageFailure, void>> saveSyncMetadata(
+  Future<Either<CloudStorageFailure, bool>> saveSyncMetadata(
     SyncMetadata metadata,
   );
 
@@ -59,5 +59,5 @@ abstract class CloudStorageRepository {
   Future<Either<CloudStorageFailure, bool>> fileExists(String fileName);
 
   /// Delete file from cloud
-  Future<Either<CloudStorageFailure, void>> deleteFile(String fileId);
+  Future<Either<CloudStorageFailure, bool>> deleteFile(String fileId);
 }

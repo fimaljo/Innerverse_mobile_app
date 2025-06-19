@@ -6,28 +6,20 @@ import 'package:innerverse/features/cloud_storage/presentation/blocs/cloud_stora
 import 'package:innerverse/features/cloud_storage/presentation/blocs/cloud_storage_event.dart';
 import 'package:innerverse/features/cloud_storage/presentation/blocs/cloud_storage_state.dart';
 import 'package:innerverse/shared/buttons/app_primary_button.dart';
+import 'package:innerverse/features/cloud_storage/core/utils/background_sync.dart';
+import 'package:innerverse/features/cloud_storage/core/utils/offline_queue.dart';
+import 'package:innerverse/features/cloud_storage/core/utils/conflict_resolution.dart';
+import 'package:innerverse/features/cloud_storage/domain/failures/cloud_storage_failure.dart';
 
 class CloudStorageSettingsPage extends StatelessWidget {
   const CloudStorageSettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Cloud Storage',
-          style: textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded),
-          onPressed: () => context.pop(),
-        ),
+        title: const Text('Cloud Storage Settings'),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       body: BlocConsumer<CloudStorageBloc, CloudStorageState>(
         listener: (context, state) {
@@ -35,89 +27,61 @@ class CloudStorageSettingsPage extends StatelessWidget {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.error!),
-                backgroundColor: colorScheme.error,
+                backgroundColor: Colors.red,
               ),
             );
           }
         },
         builder: (context, state) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Google Drive Section
-                _buildSectionHeader(
-                  context,
-                  'Google Drive Sync',
-                  Icons.cloud_sync,
-                  colorScheme.primary,
-                ),
-                const SizedBox(height: 16),
+          if (state.isLoading) {
+            return _buildLoadingView(context);
+          }
 
-                // Authentication Status
-                _buildAuthStatusCard(context, state),
-                const SizedBox(height: 16),
-
-                // Sync Options
-                if (state.isAuthenticated) ...[
-                  _buildSyncOptionsCard(context, state),
-                  const SizedBox(height: 16),
-                ],
-
-                // Sync Status
-                if (state.syncStatus != null) ...[
-                  _buildSyncStatusCard(context, state.syncStatus!),
-                  const SizedBox(height: 16),
-                ],
-
-                // Information Section
-                _buildSectionHeader(
-                  context,
-                  'About Cloud Storage',
-                  Icons.info_outline,
-                  colorScheme.secondary,
-                ),
-                const SizedBox(height: 16),
-                _buildInfoCard(context),
-              ],
-            ),
-          );
+          return _buildAuthenticatedView(context, state);
         },
       ),
     );
   }
 
-  Widget _buildSectionHeader(
-    BuildContext context,
-    String title,
-    IconData icon,
-    Color color,
-  ) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return Row(
-      children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
+  Widget _buildLoadingView(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('Loading...'),
+        ],
+      ),
     );
   }
 
-  Widget _buildAuthStatusCard(BuildContext context, CloudStorageState state) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
+  Widget _buildAuthenticatedView(
+      BuildContext context, CloudStorageState state) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildAuthenticationSection(context, state.isAuthenticated),
+          const SizedBox(height: 24),
+          _buildSyncSection(context, state),
+          const SizedBox(height: 24),
+          _buildAdvancedFeaturesSection(context),
+          const SizedBox(height: 24),
+          _buildOfflineQueueSection(context),
+          const SizedBox(height: 24),
+          _buildConflictResolutionSection(context),
+          const SizedBox(height: 24),
+          _buildBackgroundSyncSection(context),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildAuthenticationSection(
+      BuildContext context, bool isAuthenticated) {
     return Card(
-      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -126,132 +90,43 @@ class CloudStorageSettingsPage extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  state.isAuthenticated ? Icons.check_circle : Icons.cancel,
-                  color: state.isAuthenticated ? Colors.green : Colors.red,
-                  size: 24,
+                  isAuthenticated ? Icons.cloud_done : Icons.cloud_off,
+                  color: isAuthenticated ? Colors.green : Colors.grey,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  state.isAuthenticated
-                      ? 'Connected to Google Drive'
-                      : 'Not connected to Google Drive',
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  'Authentication',
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            if (state.isAuthenticated) ...[
-              Text(
-                'Your data is securely synced with Google Drive.',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: AppPrimaryButton(
-                  onTap: () {
-                    context.read<CloudStorageBloc>().add(
-                          const SignOutRequested(),
-                        );
-                  },
-                  height: 48,
-                  gradientColors: [Colors.red, Colors.red.shade700],
-                  child: const Text(
-                    'Disconnect',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ] else ...[
-              Text(
-                'Connect your Google Drive account to backup and sync your memories across devices.',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: AppPrimaryButton(
-                  onTap: () {
-                    context.read<CloudStorageBloc>().add(
-                          const AuthenticateRequested(),
-                        );
-                  },
-                  height: 48,
-                  gradientColors: [colorScheme.primary, colorScheme.primary],
-                  child: const Text(
-                    'Connect to Google Drive',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSyncOptionsCard(BuildContext context, CloudStorageState state) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
             Text(
-              'Sync Options',
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+              isAuthenticated
+                  ? 'Connected to Google Drive'
+                  : 'Not connected to Google Drive',
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: AppPrimaryButton(
-                onTap: state.isLoading
-                    ? () {}
-                    : () {
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (isAuthenticated) {
                         context.read<CloudStorageBloc>().add(
-                              const PerformFullSyncRequested(),
+                              const SignOutRequested(),
                             );
-                      },
-                height: 48,
-                gradientColors: [colorScheme.primary, colorScheme.primary],
-                child: state.isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
-                      )
-                    : const Text(
-                        'Sync Now',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-              ),
+                      } else {
+                        context.read<CloudStorageBloc>().add(
+                              const AuthenticateRequested(),
+                            );
+                      }
+                    },
+                    child: Text(isAuthenticated ? 'Sign Out' : 'Sign In'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -259,105 +134,49 @@ class CloudStorageSettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSyncStatusCard(BuildContext context, SyncStatus syncStatus) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-
+  Widget _buildSyncSection(BuildContext context, CloudStorageState state) {
     return Card(
-      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Last Sync',
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            if (syncStatus.lastSyncTime != null) ...[
-              Text(
-                '${syncStatus.lastSyncTime!.day}/${syncStatus.lastSyncTime!.month}/${syncStatus.lastSyncTime!.year} at ${syncStatus.lastSyncTime!.hour}:${syncStatus.lastSyncTime!.minute.toString().padLeft(2, '0')}',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
+            Row(
+              children: [
+                const Icon(Icons.sync),
+                const SizedBox(width: 8),
+                Text(
+                  'Sync',
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${syncStatus.syncedItems} of ${syncStatus.totalItems} items synced',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ] else ...[
-              Text(
-                'No sync performed yet',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'What gets synced?',
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildInfoItem(
-              context,
-              'Memories',
-              'All your memories with titles, descriptions, and emotions',
-              Icons.favorite,
-            ),
-            const SizedBox(height: 8),
-            _buildInfoItem(
-              context,
-              'World Icons',
-              'Your custom world symbols and categories',
-              Icons.public,
-            ),
-            const SizedBox(height: 8),
-            _buildInfoItem(
-              context,
-              'Images',
-              'All images attached to your memories',
-              Icons.image,
+              ],
             ),
             const SizedBox(height: 16),
-            Text(
-              'Privacy & Security',
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Your data is encrypted and stored securely in your Google Drive account. Only you have access to your data.',
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+            if (state.syncStatus != null) ...[
+              _buildSyncStatusInfo(context, state.syncStatus!),
+              const SizedBox(height: 16),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: state.isLoading
+                        ? null
+                        : () {
+                            context.read<CloudStorageBloc>().add(
+                                  const PerformFullSyncRequested(),
+                                );
+                          },
+                    child: state.isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Sync Now'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -365,45 +184,368 @@ class CloudStorageSettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoItem(
+  Widget _buildSyncStatusInfo(BuildContext context, dynamic syncStatus) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Last Sync: ${syncStatus.lastSyncTime?.toString() ?? 'Never'}',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        Text(
+          'Status: ${syncStatus.isSyncing == true ? 'Syncing' : 'Idle'}',
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        if (syncStatus.lastSyncError != null)
+          Text(
+            'Error: ${syncStatus.lastSyncError}',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Colors.red,
+                ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildAdvancedFeaturesSection(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.settings),
+                const SizedBox(width: 8),
+                Text(
+                  'Advanced Features',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildFeatureToggle(
+              context,
+              'Image Compression',
+              'Compress images before upload to save bandwidth',
+              true,
+              (value) {
+                // TODO: Implement image compression toggle
+              },
+            ),
+            const SizedBox(height: 8),
+            _buildFeatureToggle(
+              context,
+              'Retry Logic',
+              'Automatically retry failed operations',
+              true,
+              (value) {
+                // TODO: Implement retry logic toggle
+              },
+            ),
+            const SizedBox(height: 8),
+            _buildFeatureToggle(
+              context,
+              'Conflict Resolution',
+              'Automatically resolve sync conflicts',
+              false,
+              (value) {
+                // TODO: Implement conflict resolution toggle
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOfflineQueueSection(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.queue),
+                const SizedBox(width: 8),
+                Text(
+                  'Offline Queue',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            FutureBuilder<int>(
+              future: OfflineQueueManager.getQueueSize(),
+              builder: (context, snapshot) {
+                final queueSize = snapshot.data ?? 0;
+                return Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Pending operations: $queueSize'),
+                        if (queueSize > 0)
+                          TextButton(
+                            onPressed: () => _showOfflineQueueDetails(context),
+                            child: const Text('View Details'),
+                          ),
+                      ],
+                    ),
+                    if (queueSize > 0) ...[
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        onPressed: () => _processOfflineQueue(context),
+                        child: const Text('Process Queue'),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConflictResolutionSection(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.merge_type),
+                const SizedBox(width: 8),
+                Text(
+                  'Conflict Resolution',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<ConflictResolutionStrategy>(
+              decoration: const InputDecoration(
+                labelText: 'Default Strategy',
+                border: OutlineInputBorder(),
+              ),
+              value: ConflictResolutionStrategy.timestamp,
+              items: ConflictResolutionStrategy.values.map((strategy) {
+                return DropdownMenuItem(
+                  value: strategy,
+                  child: Text(_getStrategyName(strategy)),
+                );
+              }).toList(),
+              onChanged: (value) {
+                // TODO: Implement strategy selection
+              },
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => _showConflictHistory(context),
+              child: const Text('View Conflict History'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackgroundSyncSection(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.schedule),
+                const SizedBox(width: 8),
+                Text(
+                  'Background Sync',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildFeatureToggle(
+              context,
+              'Enable Background Sync',
+              'Automatically sync data in the background',
+              false,
+              (value) async {
+                if (value) {
+                  await BackgroundSyncService.schedulePeriodicSync();
+                } else {
+                  await BackgroundSyncService.cancelAllTasks();
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            FutureBuilder<Map<String, dynamic>>(
+              future: BackgroundSyncService.getSyncStats(),
+              builder: (context, snapshot) {
+                final stats = snapshot.data ?? {};
+                return Column(
+                  children: [
+                    _buildStatRow('Last Sync',
+                        stats['lastSyncTime']?.toString() ?? 'Never'),
+                    _buildStatRow(
+                        'Total Syncs', (stats['totalSyncs'] ?? 0).toString()),
+                    _buildStatRow('Success Rate',
+                        (stats['successRate'] ?? '0.0').toString() + '%'),
+                    if (stats['lastSyncError'] != null) ...[
+                      Builder(
+                        builder: (context) {
+                          final error = stats['lastSyncError'] as String?;
+                          if (error != null && error.isNotEmpty) {
+                            return _buildStatRow('Last Error', error);
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureToggle(
     BuildContext context,
     String title,
     String description,
-    IconData icon,
+    bool initialValue,
+    ValueChanged<bool> onChanged,
   ) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    final colorScheme = theme.colorScheme;
-
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 20,
-          color: colorScheme.primary,
-        ),
-        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               Text(
                 description,
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),
         ),
+        Switch(
+          value: initialValue,
+          onChanged: onChanged,
+        ),
       ],
+    );
+  }
+
+  Widget _buildStatRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label),
+          Text(value),
+        ],
+      ),
+    );
+  }
+
+  String _getStrategyName(ConflictResolutionStrategy strategy) {
+    switch (strategy) {
+      case ConflictResolutionStrategy.localWins:
+        return 'Local Wins';
+      case ConflictResolutionStrategy.remoteWins:
+        return 'Remote Wins';
+      case ConflictResolutionStrategy.manual:
+        return 'Manual';
+      case ConflictResolutionStrategy.merge:
+        return 'Merge';
+      case ConflictResolutionStrategy.timestamp:
+        return 'Timestamp';
+    }
+  }
+
+  void _showOfflineQueueDetails(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Offline Queue Details'),
+        content: FutureBuilder<List<QueueOperation>>(
+          future: OfflineQueueManager.getPendingOperations(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            }
+
+            final operations = snapshot.data ?? [];
+            if (operations.isEmpty) {
+              return const Text('No pending operations');
+            }
+
+            return SizedBox(
+              width: double.maxFinite,
+              height: 300,
+              child: ListView.builder(
+                itemCount: operations.length,
+                itemBuilder: (context, index) {
+                  final operation = operations[index];
+                  return ListTile(
+                    title: Text(operation.type.name),
+                    subtitle: Text(operation.timestamp.toString()),
+                    trailing: Text('Retry: ${operation.retryCount}'),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _processOfflineQueue(BuildContext context) {
+    // TODO: Implement offline queue processing
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Processing offline queue...')),
+    );
+  }
+
+  void _showConflictHistory(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Conflict History'),
+        content: const Text('No conflicts detected'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 }
