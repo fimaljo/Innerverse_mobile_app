@@ -65,10 +65,14 @@ class _WorldPageState extends State<WorldPage> {
           alignment: Alignment.topCenter,
           child: Padding(
             padding: const EdgeInsets.only(top: 200), // adjust as needed
-            child: Text(
-              'Family',
-              style: textTheme.displayMedium,
-              textAlign: TextAlign.center,
+            child: Column(
+              children: [
+                Text(
+                  'Family',
+                  style: textTheme.displayMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           ),
         ),
@@ -97,7 +101,6 @@ class _WorldPageState extends State<WorldPage> {
                 padding: EdgeInsets.all(16),
                 child: Text('Loading animation or missing input...'),
               ),
-
             Expanded(
               child: Align(
                 alignment: Alignment.bottomCenter,

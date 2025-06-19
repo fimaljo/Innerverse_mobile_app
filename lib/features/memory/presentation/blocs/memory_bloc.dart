@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:innerverse/core/events/app_events.dart';
+import 'package:innerverse/core/services/event_bus_service.dart';
 import 'package:innerverse/features/memory/domain/usecases/add_memory_usecase.dart';
 import 'package:innerverse/features/memory/domain/usecases/base_usecase.dart';
 import 'package:innerverse/features/memory/domain/usecases/clear_all_memories_usecase.dart';
@@ -11,6 +13,8 @@ import 'package:innerverse/features/memory/presentation/blocs/memory_event.dart'
 import 'package:innerverse/features/memory/presentation/blocs/memory_state.dart';
 
 class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
+  final EventBusService _eventBus = EventBusService();
+
   MemoryBloc({
     required GetAllMemoriesUseCase getAllMemoriesUseCase,
     required AddMemoryUseCase addMemoryUseCase,
@@ -112,13 +116,17 @@ class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
                     isLoading: false,
                   ),
                 ),
-                (memories) => emit(
-                  state.copyWith(
-                    memories: memories,
-                    filteredMemories: memories,
-                    isLoading: false,
-                  ),
-                ),
+                (memories) {
+                  emit(
+                    state.copyWith(
+                      memories: memories,
+                      filteredMemories: memories,
+                      isLoading: false,
+                    ),
+                  );
+                  // Emit global event for memory creation
+                  _eventBus.emit(const MemoryCreatedEvent());
+                },
               );
             }
           },
@@ -165,13 +173,17 @@ class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
                     isLoading: false,
                   ),
                 ),
-                (memories) => emit(
-                  state.copyWith(
-                    memories: memories,
-                    filteredMemories: memories,
-                    isLoading: false,
-                  ),
-                ),
+                (memories) {
+                  emit(
+                    state.copyWith(
+                      memories: memories,
+                      filteredMemories: memories,
+                      isLoading: false,
+                    ),
+                  );
+                  // Emit global event for memory update
+                  _eventBus.emit(const MemoryUpdatedEvent());
+                },
               );
             }
           },
@@ -218,13 +230,17 @@ class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
                     isLoading: false,
                   ),
                 ),
-                (memories) => emit(
-                  state.copyWith(
-                    memories: memories,
-                    filteredMemories: memories,
-                    isLoading: false,
-                  ),
-                ),
+                (memories) {
+                  emit(
+                    state.copyWith(
+                      memories: memories,
+                      filteredMemories: memories,
+                      isLoading: false,
+                    ),
+                  );
+                  // Emit global event for memory deletion
+                  _eventBus.emit(const MemoryDeletedEvent());
+                },
               );
             }
           },
@@ -297,13 +313,17 @@ class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
               isLoading: false,
             ),
           ),
-          (_) => emit(
-            state.copyWith(
-              memories: const [],
-              filteredMemories: const [],
-              isLoading: false,
-            ),
-          ),
+          (_) {
+            emit(
+              state.copyWith(
+                memories: const [],
+                filteredMemories: const [],
+                isLoading: false,
+              ),
+            );
+            // Emit global event for clearing all memories
+            _eventBus.emit(const MemoryDeletedEvent());
+          },
         );
       }
     } on Exception catch (e) {
@@ -379,12 +399,16 @@ class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
               error: failure.toString(),
               isCreating: false,
             )),
-            (memories) => emit(state.copyWith(
-              memories: memories,
-              filteredMemories: memories,
-              isCreating: false,
-              memoryCreationData: null, // Clear creation data
-            )),
+            (memories) {
+              emit(state.copyWith(
+                memories: memories,
+                filteredMemories: memories,
+                isCreating: false,
+                memoryCreationData: null, // Clear creation data
+              ));
+              // Emit global event for memory creation
+              _eventBus.emit(const MemoryCreatedEvent());
+            },
           );
         },
       );

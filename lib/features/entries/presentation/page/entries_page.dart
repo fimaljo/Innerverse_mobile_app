@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:innerverse/core/navigation/route_constants.dart';
-import 'package:innerverse/features/memory/domain/entities/memory.dart';
-import 'package:innerverse/features/memory/presentation/blocs/memory_bloc.dart';
-import 'package:innerverse/features/memory/presentation/blocs/memory_event.dart';
-import 'package:innerverse/features/memory/presentation/blocs/memory_state.dart';
+import 'package:innerverse/features/entries/domain/entities/entry.dart';
+import 'package:innerverse/features/entries/presentation/blocs/entries_bloc.dart';
+import 'package:innerverse/features/entries/presentation/blocs/entries_event.dart';
+import 'package:innerverse/features/entries/presentation/blocs/entries_state.dart';
 import 'package:innerverse/shared/buttons/app_primary_button.dart';
 import 'package:innerverse/shared/widgets/custome_text_field.dart';
 import 'package:intl/intl.dart';
@@ -22,7 +22,7 @@ class _EntriesPageState extends State<EntriesPage> {
   @override
   void initState() {
     super.initState();
-    context.read<MemoryBloc>().add(const LoadMemories());
+    context.read<EntriesBloc>().add(const LoadEntries());
   }
 
   @override
@@ -37,47 +37,80 @@ class _EntriesPageState extends State<EntriesPage> {
             Padding(
               padding: const EdgeInsets.all(16),
               child: CustomeTextField(
-                hintText: 'Search memories...',
+                hintText: 'Search entries...',
                 textColor: Colors.black,
                 hintColor: Colors.grey,
-                onChanged: (value) {},
+                onChanged: (value) {
+                  context.read<EntriesBloc>().add(SearchEntries(value));
+                },
               ),
             ),
             Expanded(
-              child: BlocBuilder<MemoryBloc, MemoryState>(
+              child: BlocBuilder<EntriesBloc, EntriesState>(
                 builder: (context, state) {
-                  if (state.isLoading) {
+                  if (state is EntriesLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  if (state.error != null) {
+                  if (state is EntriesError) {
                     return Center(
-                      child: Text(
-                        'Error: ${state.error}',
-                        style: const TextStyle(color: Colors.red),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            'Error: ${state.message}',
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () {
+                              context
+                                  .read<EntriesBloc>()
+                                  .add(const RefreshEntries());
+                            },
+                            child: const Text('Retry'),
+                          ),
+                        ],
                       ),
                     );
                   }
 
-                  if (state.memories.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No memories yet. Create your first memory!',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey,
+                  if (state is EntriesLoaded) {
+                    if (state.entries.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'No entries yet. Create your first memory!',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
                         ),
+                      );
+                    }
+
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<EntriesBloc>().add(const RefreshEntries());
+                      },
+                      child: ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 80),
+                        itemCount: state.entries.length,
+                        itemBuilder: (context, index) {
+                          final entry = state.entries[index];
+                          return _EntryCard(entry: entry);
+                        },
                       ),
                     );
                   }
 
-                  return ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 80),
-                    itemCount: state.memories.length,
-                    itemBuilder: (context, index) {
-                      final memory = state.memories[index];
-                      return _MemoryCard(memory: memory);
-                    },
+                  return const Center(
+                    child: Text(
+                      'No entries yet. Create your first memory!',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
                   );
                 },
               ),
@@ -106,9 +139,9 @@ class _EntriesPageState extends State<EntriesPage> {
   }
 }
 
-class _MemoryCard extends StatelessWidget {
-  const _MemoryCard({required this.memory});
-  final Memory memory;
+class _EntryCard extends StatelessWidget {
+  const _EntryCard({required this.entry});
+  final Entry entry;
 
   void _showImageFullScreen(BuildContext context, String imagePath) {
     Navigator.of(context).push(
@@ -254,7 +287,7 @@ class _MemoryCard extends StatelessWidget {
             child: Row(
               children: [
                 Row(
-                  children: memory.worldIcons
+                  children: entry.worldIcons
                       .map(
                         (worldIcon) => Padding(
                           padding: const EdgeInsets.only(right: 8),
@@ -270,7 +303,7 @@ class _MemoryCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    memory.title ?? 'Untitled',
+                    entry.title ?? 'Untitled',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -278,7 +311,7 @@ class _MemoryCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (memory.images != null && memory.images!.isNotEmpty) ...[
+                if (entry.images != null && entry.images!.isNotEmpty) ...[
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -296,7 +329,7 @@ class _MemoryCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 2),
                         Text(
-                          '${memory.images!.length}',
+                          '${entry.images!.length}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
@@ -309,14 +342,14 @@ class _MemoryCard extends StatelessWidget {
                   const SizedBox(width: 8),
                 ],
                 Text(
-                  memory.emojiLabel,
+                  entry.emojiLabel,
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
                   ),
                 ),
                 Text(
-                  DateFormat('MMM d, y').format(memory.dateTime),
+                  DateFormat('MMM d, y').format(entry.dateTime),
                   style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 14,
@@ -330,9 +363,9 @@ class _MemoryCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (memory.description != null) ...[
+                if (entry.description != null) ...[
                   Text(
-                    memory.description!,
+                    entry.description!,
                     style: const TextStyle(
                       fontSize: 16,
                       color: Colors.black87,
@@ -341,7 +374,7 @@ class _MemoryCard extends StatelessWidget {
                   const SizedBox(height: 12),
                 ],
                 // Image Gallery
-                if (memory.images != null && memory.images!.isNotEmpty) ...[
+                if (entry.images != null && entry.images!.isNotEmpty) ...[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -353,11 +386,11 @@ class _MemoryCard extends StatelessWidget {
                           color: Colors.grey[700],
                         ),
                       ),
-                      if (memory.images!.length > 3)
+                      if (entry.images!.length > 3)
                         GestureDetector(
-                          onTap: () => _showAllImages(context, memory.images!),
+                          onTap: () => _showAllImages(context, entry.images!),
                           child: Text(
-                            'View All (${memory.images!.length})',
+                            'View All (${entry.images!.length})',
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.blue[600],
@@ -373,10 +406,10 @@ class _MemoryCard extends StatelessWidget {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount:
-                          memory.images!.length > 3 ? 3 : memory.images!.length,
+                          entry.images!.length > 3 ? 3 : entry.images!.length,
                       separatorBuilder: (_, __) => const SizedBox(width: 8),
                       itemBuilder: (context, imageIndex) {
-                        final imagePath = memory.images![imageIndex];
+                        final imagePath = entry.images![imageIndex];
                         return GestureDetector(
                           onTap: () => _showImageFullScreen(context, imagePath),
                           child: Stack(
@@ -405,7 +438,7 @@ class _MemoryCard extends StatelessWidget {
                                   },
                                 ),
                               ),
-                              if (imageIndex == 2 && memory.images!.length > 3)
+                              if (imageIndex == 2 && entry.images!.length > 3)
                                 Positioned.fill(
                                   child: Container(
                                     decoration: BoxDecoration(
@@ -414,7 +447,7 @@ class _MemoryCard extends StatelessWidget {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        '+${memory.images!.length - 3}',
+                                        '+${entry.images!.length - 3}',
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 16,
@@ -441,7 +474,7 @@ class _MemoryCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      memory.time.hour.toString(),
+                      entry.time.hour.toString(),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -455,7 +488,7 @@ class _MemoryCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Emotion: ${memory.emotionSliderValue}',
+                      'Emotion: ${entry.emotionSliderValue}',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
