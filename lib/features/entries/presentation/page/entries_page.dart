@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:innerverse/core/navigation/route_constants.dart';
 import 'package:innerverse/features/memory/domain/entities/memory.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_bloc.dart';
@@ -8,8 +11,6 @@ import 'package:innerverse/features/memory/presentation/blocs/memory_event.dart'
 import 'package:innerverse/features/memory/presentation/blocs/memory_state.dart';
 import 'package:innerverse/shared/buttons/app_primary_button.dart';
 import 'package:innerverse/shared/widgets/custome_text_field.dart';
-import 'package:intl/intl.dart';
-import 'dart:io';
 
 class EntriesPage extends StatefulWidget {
   const EntriesPage({super.key});
@@ -31,6 +32,23 @@ class _EntriesPageState extends State<EntriesPage> {
     final navBarHeight = screenHeight / 9;
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Memories',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              context.pushNamed(RouteConstants.cloudStorageSettingsName);
+            },
+            tooltip: 'Settings',
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Column(
           children: [

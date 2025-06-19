@@ -18,6 +18,10 @@ class RouteConstants {
   static const String worldTree = '/world';
   static const String analytics = '/analytics';
 
+  // Cloud Storage
+  static const String cloudStorageSettings = '/cloud-storage-settings';
+  static const String cloudStorageSettingsName = 'cloudStorageSettings';
+
   // Route names
 
   static const String entriesName = 'entries';

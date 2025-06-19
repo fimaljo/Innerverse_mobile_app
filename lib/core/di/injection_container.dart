@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:innerverse/core/di/navigation_di.dart';
 import 'package:innerverse/core/navigation/route_tracker.dart';
+import 'package:innerverse/features/cloud_storage/di/cloud_storage_module.dart';
 import 'package:innerverse/features/memory/di/memory_module.dart';
 import 'package:innerverse/features/world/di/world_module.dart';
 
@@ -19,5 +20,6 @@ Future<void> setupServiceLocator(GoRouter router, RouteTracker tracker) async {
   setupNavigationDependencies();
   await MemoryModule.init(sl);
   await WorldModule.init(sl);
+  await CloudStorageModule.init(sl);
   // setupAuthDependencies();
 }

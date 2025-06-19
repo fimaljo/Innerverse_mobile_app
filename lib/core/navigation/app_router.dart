@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:innerverse/core/navigation/route_constants.dart';
 import 'package:innerverse/core/navigation/route_tracker.dart';
 import 'package:innerverse/features/analytics/presentation/page/analytics_page.dart';
+import 'package:innerverse/features/cloud_storage/presentation/blocs/cloud_storage_bloc.dart';
+import 'package:innerverse/features/cloud_storage/presentation/pages/cloud_storage_settings_page.dart';
 import 'package:innerverse/features/entries/presentation/page/entries_page.dart';
 import 'package:innerverse/features/home/presentation/pages/home_page.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_bloc.dart';
@@ -77,6 +79,14 @@ class AppRouter {
               ),
             );
           },
+        ),
+        GoRoute(
+          path: RouteConstants.cloudStorageSettings,
+          name: RouteConstants.cloudStorageSettingsName,
+          builder: (context, state) => BlocProvider(
+            create: (_) => GetIt.I<CloudStorageBloc>(),
+            child: const CloudStorageSettingsPage(),
+          ),
         ),
       ],
     );

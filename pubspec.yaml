@@ -66,6 +66,13 @@ dependencies:
   flutter_iconpicker: ^3.3.3
   path_provider: ^2.1.5
   image_picker: ^1.0.7
+  
+  # Google Drive API dependencies
+  googleapis: ^11.0.0
+  googleapis_auth: ^1.4.0
+  google_sign_in: ^6.1.0
+  crypto: ^3.0.0
+  flutter_secure_storage: ^9.0.0
 
 dev_dependencies:
   flutter_test:
