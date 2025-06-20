@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:innerverse/core/events/app_events.dart';
 import 'package:innerverse/core/services/event_bus_service.dart';
+import 'package:innerverse/features/entries/domain/entities/entry.dart';
 import 'package:innerverse/features/entries/domain/failures/entries_failure.dart';
 import 'package:innerverse/features/entries/domain/usecases/base_usecase.dart';
 import 'package:innerverse/features/entries/domain/usecases/delete_entry_usecase.dart';
@@ -70,18 +71,35 @@ class EntriesBloc extends Bloc<EntriesEvent, EntriesState> {
       },
       (entries) {
         print('✅ Loaded ${entries.length} entries from storage');
-        print('📋 Entry details:');
-        for (final entry in entries) {
+
+        // Sort entries by date and time (newest first)
+        final sortedEntries = List<Entry>.from(entries);
+        sortedEntries.sort((a, b) {
+          // First compare by date
+          final dateComparison = b.dateTime.compareTo(a.dateTime);
+          if (dateComparison != 0) {
+            return dateComparison;
+          }
+          // If same date, compare by time
+          final aMinutes = a.time.hour * 60 + a.time.minute;
+          final bMinutes = b.time.hour * 60 + b.time.minute;
+          return bMinutes.compareTo(aMinutes);
+        });
+
+        print('📋 Sorted entry details:');
+        for (final entry in sortedEntries) {
           print('  - ID: ${entry.id}');
           print('    Title: "${entry.title}"');
           print('    Description: "${entry.description}"');
           print('    DateTime: ${entry.dateTime}');
+          print(
+              '    Time: ${entry.time.hour}:${entry.time.minute.toString().padLeft(2, '0')}');
           print('    Emoji: ${entry.emojiLabel}');
           print('    World Icons: ${entry.worldIcons.length}');
           print('    Images: ${entry.images?.length ?? 0}');
           print('    ---');
         }
-        emit(EntriesLoaded(entries: entries));
+        emit(EntriesLoaded(entries: sortedEntries));
       },
     );
   }
@@ -102,10 +120,26 @@ class EntriesBloc extends Bloc<EntriesEvent, EntriesState> {
         failure: failure,
         message: _getErrorMessage(failure),
       )),
-      (entries) => emit(EntriesLoaded(
-        entries: entries,
-        searchQuery: event.query,
-      )),
+      (entries) {
+        // Sort search results by date and time (newest first)
+        final sortedEntries = List<Entry>.from(entries);
+        sortedEntries.sort((a, b) {
+          // First compare by date
+          final dateComparison = b.dateTime.compareTo(a.dateTime);
+          if (dateComparison != 0) {
+            return dateComparison;
+          }
+          // If same date, compare by time
+          final aMinutes = a.time.hour * 60 + a.time.minute;
+          final bMinutes = b.time.hour * 60 + b.time.minute;
+          return bMinutes.compareTo(aMinutes);
+        });
+
+        emit(EntriesLoaded(
+          entries: sortedEntries,
+          searchQuery: event.query,
+        ));
+      },
     );
   }
 
@@ -151,6 +185,19 @@ class EntriesBloc extends Bloc<EntriesEvent, EntriesState> {
             return entry.id == event.entry.id ? event.entry : entry;
           }).toList();
 
+          // Sort the updated entries by date and time (newest first)
+          updatedEntries.sort((a, b) {
+            // First compare by date
+            final dateComparison = b.dateTime.compareTo(a.dateTime);
+            if (dateComparison != 0) {
+              return dateComparison;
+            }
+            // If same date, compare by time
+            final aMinutes = a.time.hour * 60 + a.time.minute;
+            final bMinutes = b.time.hour * 60 + b.time.minute;
+            return bMinutes.compareTo(aMinutes);
+          });
+
           print('🔄 Updated entries list:');
           for (final entry in updatedEntries) {
             print('  - ID: ${entry.id}, Title: "${entry.title}"');
@@ -193,6 +240,19 @@ class EntriesBloc extends Bloc<EntriesEvent, EntriesState> {
           final updatedEntries = currentState.entries
               .where((entry) => entry.id != event.id)
               .toList();
+
+          // Sort the remaining entries by date and time (newest first)
+          updatedEntries.sort((a, b) {
+            // First compare by date
+            final dateComparison = b.dateTime.compareTo(a.dateTime);
+            if (dateComparison != 0) {
+              return dateComparison;
+            }
+            // If same date, compare by time
+            final aMinutes = a.time.hour * 60 + a.time.minute;
+            final bMinutes = b.time.hour * 60 + b.time.minute;
+            return bMinutes.compareTo(aMinutes);
+          });
 
           emit(EntryDeleted(
             entries: updatedEntries,
