@@ -35,3 +35,33 @@ class DeleteWorld extends WorldEvent {
   @override
   List<Object?> get props => [id];
 }
+
+// Tree growth visualization events
+class LoadWorldVisualization extends WorldEvent {
+  const LoadWorldVisualization();
+}
+
+class RefreshWorldVisualization extends WorldEvent {
+  const RefreshWorldVisualization();
+}
+
+// World selection and individual tree growth events
+class LoadWorldsWithTreeGrowth extends WorldEvent {
+  const LoadWorldsWithTreeGrowth();
+}
+
+class SelectWorld extends WorldEvent {
+  const SelectWorld(this.worldId);
+  final String worldId;
+
+  @override
+  List<Object?> get props => [worldId];
+}
+
+class LoadWorldTreeGrowth extends WorldEvent {
+  const LoadWorldTreeGrowth(this.worldId);
+  final String worldId;
+
+  @override
+  List<Object?> get props => [worldId];
+}

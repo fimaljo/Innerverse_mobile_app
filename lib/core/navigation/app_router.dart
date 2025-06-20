@@ -16,7 +16,7 @@ import 'package:innerverse/features/navigation/domain/entities/navigation_tab_en
 import 'package:innerverse/features/navigation/presentation/bloc/navigation_bloc.dart';
 import 'package:innerverse/features/navigation/presentation/bloc/navigation_event.dart';
 import 'package:innerverse/features/world/presentation/blocs/world_bloc.dart';
-import 'package:innerverse/features/world/world_page.dart';
+import 'package:innerverse/features/world/presentation/pages/world_page.dart';
 
 class AppRouter {
   static GoRouter createRouter(RouteTracker tracker) {
@@ -51,7 +51,10 @@ class AppRouter {
             GoRoute(
               path: RouteConstants.worldTree,
               name: RouteConstants.worldTreeName,
-              builder: (context, state) => const WorldPage(),
+              builder: (context, state) => BlocProvider(
+                create: (_) => GetIt.I<WorldBloc>(),
+                child: const WorldPage(),
+              ),
             ),
             GoRoute(
               path: RouteConstants.analytics,

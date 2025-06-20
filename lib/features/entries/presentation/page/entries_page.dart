@@ -118,21 +118,18 @@ class _EntriesPageState extends State<EntriesPage> {
           ],
         ),
       ),
-      floatingActionButton: Padding(
-        padding: EdgeInsets.only(bottom: navBarHeight + 20),
-        child: AppPrimaryButton(
-          height: 60,
-          minWidth: 60,
-          maxWidth: 60,
-          radius: 30,
-          gradientColors: const [Colors.blue, Colors.purple],
-          onTap: () {
-            context.pushNamed(RouteConstants.selectMemoryTypeName);
-          },
-          child: const Icon(
-            Icons.add,
-            color: Colors.white,
-          ),
+      floatingActionButton: AppPrimaryButton(
+        height: 60,
+        minWidth: 60,
+        maxWidth: 60,
+        radius: 30,
+        gradientColors: const [Colors.blue, Colors.purple],
+        onTap: () {
+          context.pushNamed(RouteConstants.selectMemoryTypeName);
+        },
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
         ),
       ),
     );

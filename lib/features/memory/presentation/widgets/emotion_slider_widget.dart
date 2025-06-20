@@ -99,18 +99,15 @@ class _EmotionSliderWidgetState extends State<EmotionSliderWidget> {
                 ),
                 Positioned(
                   bottom: 10,
-                  child: Hero(
-                    tag: 'next_button',
-                    child: AppPrimaryButton(
-                      onTap: widget.onNextPressed,
-                      height: size * 0.2,
-                      minWidth: size * 0.2,
-                      maxWidth: size * 0.3,
-                      gradientColors: widget.selectedEmoji.gradient,
-                      child: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        color: Colors.white,
-                      ),
+                  child: AppPrimaryButton(
+                    onTap: widget.onNextPressed,
+                    height: size * 0.2,
+                    minWidth: size * 0.2,
+                    maxWidth: size * 0.3,
+                    gradientColors: widget.selectedEmoji.gradient,
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.white,
                     ),
                   ),
                 ),
