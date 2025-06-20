@@ -17,6 +17,8 @@ class RouteConstants {
   static const String entries = '/entries';
   static const String worldTree = '/world';
   static const String analytics = '/analytics';
+  static const String editEntry = '/edit-entry';
+  static const String editEntryName = 'editEntry';
 
   // Route names
 

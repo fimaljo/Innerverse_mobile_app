@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:innerverse/features/entries/domain/entities/entry.dart';
 
 abstract class EntriesEvent extends Equatable {
   const EntriesEvent();
@@ -22,4 +23,22 @@ class SearchEntries extends EntriesEvent {
 
 class RefreshEntries extends EntriesEvent {
   const RefreshEntries();
+}
+
+class UpdateEntry extends EntriesEvent {
+  final Entry entry;
+
+  const UpdateEntry(this.entry);
+
+  @override
+  List<Object?> get props => [entry];
+}
+
+class DeleteEntry extends EntriesEvent {
+  final String id;
+
+  const DeleteEntry(this.id);
+
+  @override
+  List<Object?> get props => [id];
 }

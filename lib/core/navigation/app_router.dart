@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:innerverse/core/navigation/route_constants.dart';
 import 'package:innerverse/core/navigation/route_tracker.dart';
 import 'package:innerverse/features/analytics/presentation/page/analytics_page.dart';
+import 'package:innerverse/features/entries/domain/entities/entry.dart';
 import 'package:innerverse/features/entries/presentation/blocs/entries_bloc.dart';
 import 'package:innerverse/features/entries/presentation/blocs/entries_event.dart';
 import 'package:innerverse/features/entries/presentation/page/entries_page.dart';
@@ -77,9 +78,33 @@ class AppRouter {
                   BlocProvider(
                     create: (_) => GetIt.I<WorldBloc>(),
                   ),
+                  BlocProvider(
+                    create: (_) => GetIt.I<EntriesBloc>(),
+                  ),
                 ],
                 child: const SelectMemoryTypePage(),
               ),
+            );
+          },
+        ),
+        GoRoute(
+          path: RouteConstants.editEntry,
+          name: RouteConstants.editEntryName,
+          builder: (context, state) {
+            final entry = state.extra as Entry;
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (_) => GetIt.I<MemoryBloc>(),
+                ),
+                BlocProvider(
+                  create: (_) => GetIt.I<WorldBloc>(),
+                ),
+                BlocProvider(
+                  create: (_) => GetIt.I<EntriesBloc>(),
+                ),
+              ],
+              child: SelectMemoryTypePage(entryToEdit: entry),
             );
           },
         ),

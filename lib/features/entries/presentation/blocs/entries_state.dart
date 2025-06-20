@@ -36,6 +36,58 @@ class EntriesLoaded extends EntriesState {
   }
 }
 
+class EntryUpdating extends EntriesState {
+  final List<Entry> entries;
+  final String? searchQuery;
+
+  const EntryUpdating({
+    required this.entries,
+    this.searchQuery,
+  });
+
+  @override
+  List<Object?> get props => [entries, searchQuery];
+}
+
+class EntryDeleting extends EntriesState {
+  final List<Entry> entries;
+  final String? searchQuery;
+
+  const EntryDeleting({
+    required this.entries,
+    this.searchQuery,
+  });
+
+  @override
+  List<Object?> get props => [entries, searchQuery];
+}
+
+class EntryUpdated extends EntriesState {
+  final List<Entry> entries;
+  final String? searchQuery;
+
+  const EntryUpdated({
+    required this.entries,
+    this.searchQuery,
+  });
+
+  @override
+  List<Object?> get props => [entries, searchQuery];
+}
+
+class EntryDeleted extends EntriesState {
+  final List<Entry> entries;
+  final String? searchQuery;
+
+  const EntryDeleted({
+    required this.entries,
+    this.searchQuery,
+  });
+
+  @override
+  List<Object?> get props => [entries, searchQuery];
+}
+
 class EntriesError extends EntriesState {
   final EntriesFailure failure;
   final String message;

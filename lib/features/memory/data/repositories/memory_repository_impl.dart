@@ -32,11 +32,17 @@ class MemoryRepositoryImpl implements IMemoryRepository {
 
   @override
   Future<Either<MemoryFailure, void>> updateMemory(Memory memory) async {
+    print('🔄 MemoryRepository: Updating memory with ID: ${memory.id}');
+    print('  - Title: "${memory.title}"');
+    print('  - Description: "${memory.description}"');
     try {
       final model = MemoryMapper.toModel(memory);
+      print('✅ MemoryRepository: Successfully converted to model');
       await _localDataSource.updateMemory(model);
+      print('✅ MemoryRepository: Successfully updated in local data source');
       return right(null);
-    } on Exception {
+    } on Exception catch (e) {
+      print('❌ MemoryRepository: Update failed with exception: $e');
       return left(const MemoryFailure.storageError());
     }
   }
@@ -66,10 +72,24 @@ class MemoryRepositoryImpl implements IMemoryRepository {
 
   @override
   Either<MemoryFailure, List<Memory>> getAllMemories() {
+    print('🔄 MemoryRepository: Getting all memories from local data source');
     try {
       final models = _localDataSource.getAllMemories();
-      return right(models.map(MemoryMapper.toEntity).toList());
-    } on Exception {
+      print(
+          '✅ MemoryRepository: Retrieved ${models.length} memories from data source');
+      final memories = models.map(MemoryMapper.toEntity).toList();
+      print(
+          '✅ MemoryRepository: Converted ${memories.length} models to entities');
+
+      // Log each memory for debugging
+      for (final memory in memories) {
+        print(
+            '  - ID: ${memory.id}, Title: "${memory.title}", Description: "${memory.description}"');
+      }
+
+      return right(memories);
+    } on Exception catch (e) {
+      print('❌ MemoryRepository: Failed to get all memories: $e');
       return left(const MemoryFailure.storageError());
     }
   }

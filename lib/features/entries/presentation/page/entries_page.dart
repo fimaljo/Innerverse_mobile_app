@@ -75,8 +75,27 @@ class _EntriesPageState extends State<EntriesPage> {
                     );
                   }
 
-                  if (state is EntriesLoaded) {
-                    if (state.entries.isEmpty) {
+                  if (state is EntriesLoaded ||
+                      state is EntryUpdating ||
+                      state is EntryDeleting ||
+                      state is EntryUpdated ||
+                      state is EntryDeleted) {
+                    final List<Entry> entries;
+                    if (state is EntriesLoaded) {
+                      entries = state.entries;
+                    } else if (state is EntryUpdating) {
+                      entries = state.entries;
+                    } else if (state is EntryDeleting) {
+                      entries = state.entries;
+                    } else if (state is EntryUpdated) {
+                      entries = state.entries;
+                    } else if (state is EntryDeleted) {
+                      entries = state.entries;
+                    } else {
+                      entries = [];
+                    }
+
+                    if (entries.isEmpty) {
                       return const Center(
                         child: Text(
                           'No entries yet. Create your first memory!',
@@ -94,9 +113,9 @@ class _EntriesPageState extends State<EntriesPage> {
                       },
                       child: ListView.builder(
                         padding: const EdgeInsets.only(bottom: 80),
-                        itemCount: state.entries.length,
+                        itemCount: entries.length,
                         itemBuilder: (context, index) {
-                          final entry = state.entries[index];
+                          final entry = entries[index];
                           return _EntryCard(entry: entry);
                         },
                       ),
@@ -244,6 +263,46 @@ class _EntryCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showEditDialog(BuildContext context) {
+    context.pushNamed(
+      RouteConstants.editEntryName,
+      extra: entry,
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    // Capture the EntriesBloc reference before showing the dialog
+    final entriesBloc = context.read<EntriesBloc>();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Entry'),
+          content: const Text(
+            'Are you sure you want to delete this entry? This action cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                entriesBloc.add(DeleteEntry(entry.id));
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -490,6 +549,60 @@ class _EntryCard extends StatelessWidget {
                         fontSize: 14,
                         color: Colors.grey[600],
                       ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                // Action Buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    BlocBuilder<EntriesBloc, EntriesState>(
+                      builder: (context, state) {
+                        final isUpdating = state is EntryUpdating;
+                        final isDeleting = state is EntryDeleting;
+
+                        return Row(
+                          children: [
+                            TextButton.icon(
+                              onPressed: (isUpdating || isDeleting)
+                                  ? null
+                                  : () => _showEditDialog(context),
+                              icon: isUpdating
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.edit, size: 16),
+                              label: Text(isUpdating ? 'Updating...' : 'Edit'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.blue[600],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            TextButton.icon(
+                              onPressed: (isUpdating || isDeleting)
+                                  ? null
+                                  : () => _showDeleteConfirmation(context),
+                              icon: isDeleting
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.delete, size: 16),
+                              label:
+                                  Text(isDeleting ? 'Deleting...' : 'Delete'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: Colors.red[600],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),

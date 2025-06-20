@@ -11,9 +11,13 @@ import 'package:innerverse/features/world/presentation/blocs/world_event.dart';
 import 'package:innerverse/features/world/presentation/blocs/world_state.dart';
 import 'package:innerverse/core/services/event_bus_service.dart';
 import 'package:innerverse/core/events/app_events.dart';
+import 'dart:async';
 
 class WorldBloc extends Bloc<WorldEvent, WorldState> {
   final EventBusService _eventBus = EventBusService();
+  late final StreamSubscription<MemoryCreatedEvent> _memoryCreatedSubscription;
+  late final StreamSubscription<MemoryUpdatedEvent> _memoryUpdatedSubscription;
+  late final StreamSubscription<MemoryDeletedEvent> _memoryDeletedSubscription;
 
   WorldBloc({
     required GetAllWorldsUseCase getAllWorldsUseCase,
@@ -45,18 +49,32 @@ class WorldBloc extends Bloc<WorldEvent, WorldState> {
     on<LoadWorldTreeGrowth>(_onLoadWorldTreeGrowth);
 
     // Listen to memory events for automatic tree growth updates
-    _eventBus.on<MemoryCreatedEvent>().listen((_) {
-      add(const RefreshWorldVisualization());
-      add(const LoadWorldsWithTreeGrowth());
+    _memoryCreatedSubscription = _eventBus.on<MemoryCreatedEvent>().listen((_) {
+      if (!isClosed) {
+        add(const RefreshWorldVisualization());
+        add(const LoadWorldsWithTreeGrowth());
+      }
     });
-    _eventBus.on<MemoryUpdatedEvent>().listen((_) {
-      add(const RefreshWorldVisualization());
-      add(const LoadWorldsWithTreeGrowth());
+    _memoryUpdatedSubscription = _eventBus.on<MemoryUpdatedEvent>().listen((_) {
+      if (!isClosed) {
+        add(const RefreshWorldVisualization());
+        add(const LoadWorldsWithTreeGrowth());
+      }
     });
-    _eventBus.on<MemoryDeletedEvent>().listen((_) {
-      add(const RefreshWorldVisualization());
-      add(const LoadWorldsWithTreeGrowth());
+    _memoryDeletedSubscription = _eventBus.on<MemoryDeletedEvent>().listen((_) {
+      if (!isClosed) {
+        add(const RefreshWorldVisualization());
+        add(const LoadWorldsWithTreeGrowth());
+      }
     });
+  }
+
+  @override
+  Future<void> close() {
+    _memoryCreatedSubscription.cancel();
+    _memoryUpdatedSubscription.cancel();
+    _memoryDeletedSubscription.cancel();
+    return super.close();
   }
 
   final GetAllWorldsUseCase _getAllWorldsUseCase;

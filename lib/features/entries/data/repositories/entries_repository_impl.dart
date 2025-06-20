@@ -56,6 +56,24 @@ class EntriesRepositoryImpl implements EntriesRepository {
     );
   }
 
+  @override
+  Future<Either<EntriesFailure, void>> updateEntry(Entry entry) async {
+    final result = await memoryRepository.updateMemory(entry);
+    return result.fold(
+      (memoryFailure) => Left(_mapMemoryFailureToEntriesFailure(memoryFailure)),
+      (_) => const Right(null),
+    );
+  }
+
+  @override
+  Future<Either<EntriesFailure, void>> deleteEntry(String id) async {
+    final result = await memoryRepository.deleteMemory(id);
+    return result.fold(
+      (memoryFailure) => Left(_mapMemoryFailureToEntriesFailure(memoryFailure)),
+      (_) => const Right(null),
+    );
+  }
+
   EntriesFailure _mapMemoryFailureToEntriesFailure(
       MemoryFailure memoryFailure) {
     return memoryFailure.when(

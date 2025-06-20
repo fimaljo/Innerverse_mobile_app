@@ -24,6 +24,7 @@ class WorldTypeStepWidget extends StatefulWidget {
     required this.onSubmit,
     required this.selectedData,
     required this.memoryData,
+    this.isEditMode = false,
   });
 
   final VoidCallback onBack;
@@ -31,6 +32,7 @@ class WorldTypeStepWidget extends StatefulWidget {
   final EmojiOption selectedData;
   final ValueChanged<List<WorldIconModel>> onWorldIconsChanged;
   final MemoryCreationData memoryData;
+  final bool isEditMode;
 
   @override
   State<WorldTypeStepWidget> createState() => _WorldTypeStepWidgetState();
@@ -118,9 +120,15 @@ class _WorldTypeStepWidgetState extends State<WorldTypeStepWidget> {
   }
 
   void _saveMemory() {
-    final memory = widget.memoryData.toMemory();
-    context.read<MemoryBloc>().add(AddMemory(memory));
-    context.pop();
+    if (widget.isEditMode) {
+      // This will be handled by the parent widget
+      widget.onSubmit();
+    } else {
+      // Create new memory
+      final memory = widget.memoryData.toMemory();
+      context.read<MemoryBloc>().add(AddMemory(memory));
+      context.pop();
+    }
   }
 
   @override
@@ -193,8 +201,8 @@ class _WorldTypeStepWidgetState extends State<WorldTypeStepWidget> {
                         minWidth: 70,
                         cornerSide: ButtonCornerSide.right,
                         gradientColors: widget.selectedData.gradient,
-                        child: const Icon(
-                          Icons.arrow_forward_ios_rounded,
+                        child: Icon(
+                          widget.isEditMode ? Icons.save : Icons.check,
                           color: Colors.white,
                         ),
                       ),
