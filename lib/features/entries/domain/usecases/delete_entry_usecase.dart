@@ -4,18 +4,16 @@ import 'package:innerverse/features/entries/domain/repositories/entries_reposito
 import 'package:innerverse/features/entries/domain/usecases/base_usecase.dart';
 
 class DeleteEntryParams {
-  final String id;
-
   const DeleteEntryParams(this.id);
+  final String id;
 }
 
 class DeleteEntryUseCase implements BaseUseCase<void, DeleteEntryParams> {
-  final EntriesRepository repository;
-
   DeleteEntryUseCase(this.repository);
+  final EntriesRepository repository;
 
   @override
   Future<Either<EntriesFailure, void>> call(DeleteEntryParams params) async {
-    return await repository.deleteEntry(params.id);
+    return repository.deleteEntry(params.id);
   }
 }

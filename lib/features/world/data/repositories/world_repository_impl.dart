@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:innerverse/features/world/domain/entities/world.dart';
 import 'package:innerverse/features/world/domain/failures/world_failure.dart';
-import 'package:innerverse/features/world/domain/repositories/world_repository.dart';
 import 'package:innerverse/features/world/domain/repositories/i_world_icon_repository.dart';
+import 'package:innerverse/features/world/domain/repositories/world_repository.dart';
 
 class WorldRepositoryImpl implements WorldRepository {
   WorldRepositoryImpl(this._worldIconRepository);

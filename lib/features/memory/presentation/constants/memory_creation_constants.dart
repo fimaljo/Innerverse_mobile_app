@@ -16,41 +16,41 @@ class MemoryCreationConstants {
   static const Curve keyboardAnimationCurve = Curves.easeInOut;
 
   // UI dimensions
-  static const double emojiSelectorSize = 40.0;
-  static const double emojiSelectorActiveSize = 48.0;
-  static const double closeButtonSize = 48.0;
-  static const double navigationButtonHeight = 80.0;
-  static const double navigationButtonWidth = 70.0;
-  static const double worldIconSize = 28.0;
-  static const double worldIconContainerSize = 60.0;
-  static const double imagePickerSize = 80.0;
-  static const double sliderThumbRadius = 8.0;
+  static const double emojiSelectorSize = 40;
+  static const double emojiSelectorActiveSize = 48;
+  static const double closeButtonSize = 48;
+  static const double navigationButtonHeight = 80;
+  static const double navigationButtonWidth = 70;
+  static const double worldIconSize = 28;
+  static const double worldIconContainerSize = 60;
+  static const double imagePickerSize = 80;
+  static const double sliderThumbRadius = 8;
 
   // Spacing
-  static const double defaultPadding = 16.0;
-  static const double smallPadding = 8.0;
-  static const double largePadding = 20.0;
-  static const double emojiSpacing = 4.0;
-  static const double worldIconSpacing = 12.0;
-  static const double imageSpacing = 8.0;
+  static const double defaultPadding = 16;
+  static const double smallPadding = 8;
+  static const double largePadding = 20;
+  static const double emojiSpacing = 4;
+  static const double worldIconSpacing = 12;
+  static const double imageSpacing = 8;
 
   // Border radius
-  static const double defaultBorderRadius = 12.0;
-  static const double largeBorderRadius = 30.0;
-  static const double circularBorderRadius = 50.0;
+  static const double defaultBorderRadius = 12;
+  static const double largeBorderRadius = 30;
+  static const double circularBorderRadius = 50;
 
   // Particle animation
-  static const double minParticleSpeed = 0.0;
-  static const double maxParticleSpeed = 200.0;
-  static const double minParticleRadius = 2.0;
-  static const double maxParticleRadius = 5.0;
+  static const double minParticleSpeed = 0;
+  static const double maxParticleSpeed = 200;
+  static const double minParticleRadius = 2;
+  static const double maxParticleRadius = 5;
   static const int maxParticleCount = 300;
   static const double maxParticleOpacity = 0.3;
 
   // Slider configuration
-  static const double minEmotionValue = 0.0;
-  static const double maxEmotionValue = 10.0;
-  static const double defaultEmotionValue = 5.0;
+  static const double minEmotionValue = 0;
+  static const double maxEmotionValue = 10;
+  static const double defaultEmotionValue = 5;
 
   // Image picker
   static const int maxImageCount = 10;

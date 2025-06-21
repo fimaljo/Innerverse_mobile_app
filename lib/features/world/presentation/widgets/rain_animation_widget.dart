@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 
 class RainAnimationWidget extends StatefulWidget {
   const RainAnimationWidget({
-    super.key,
     required this.isRaining,
     required this.daysSinceLastMemory,
+    super.key,
   });
 
   final bool isRaining;
@@ -38,16 +38,16 @@ class _RainAnimationWidgetState extends State<RainAnimationWidget>
     );
 
     _rainAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
+      begin: 0,
+      end: 1,
     ).animate(CurvedAnimation(
       parent: _rainController,
       curve: Curves.linear,
     ));
 
     _thunderAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
+      begin: 0,
+      end: 1,
     ).animate(CurvedAnimation(
       parent: _thunderController,
       curve: Curves.easeInOut,
@@ -86,14 +86,14 @@ class _RainAnimationWidgetState extends State<RainAnimationWidget>
 
   /// Calculate rain intensity based on minutes since last memory
   double get _rainIntensity {
-    if (widget.daysSinceLastMemory <= 0) return 0.0;
+    if (widget.daysSinceLastMemory <= 0) return 0;
     // More gradual increase: 1 minute = 0.1, 2 minutes = 0.3, 3 minutes = 0.5, 4+ minutes = 1.0
     return (widget.daysSinceLastMemory / 4.0).clamp(0.0, 1.0);
   }
 
   /// Calculate thunder frequency based on minutes since last memory
   double get _thunderFrequency {
-    if (widget.daysSinceLastMemory <= 2) return 0.0;
+    if (widget.daysSinceLastMemory <= 2) return 0;
     // Thunder starts after 3 minutes and increases with time
     return ((widget.daysSinceLastMemory - 2) / 3.0).clamp(0.0, 1.0);
   }
@@ -104,7 +104,7 @@ class _RainAnimationWidgetState extends State<RainAnimationWidget>
     final dropCount =
         (20 + (intensity * 180)).toInt(); // 20-200 drops (lighter start)
 
-    for (int i = 0; i < dropCount; i++) {
+    for (var i = 0; i < dropCount; i++) {
       _rainDrops.add(RainDrop(
         x: _random.nextDouble(),
         y: _random.nextDouble(),
@@ -125,7 +125,7 @@ class _RainAnimationWidgetState extends State<RainAnimationWidget>
     final cloudCount =
         (1 + (intensity * 4)).toInt(); // 1-5 clouds (fewer for better flow)
 
-    for (int i = 0; i < cloudCount; i++) {
+    for (var i = 0; i < cloudCount; i++) {
       // Create a continuous flow - clouds start at visible positions
       final startX = -1.5 + (i * 0.6); // Closer spacing for better completion
 
@@ -183,7 +183,7 @@ class _RainAnimationWidgetState extends State<RainAnimationWidget>
   }
 
   void _updateClouds() {
-    for (int i = 0; i < _clouds.length; i++) {
+    for (var i = 0; i < _clouds.length; i++) {
       final cloud = _clouds[i];
       cloud.x += cloud.speed * cloud.direction;
 

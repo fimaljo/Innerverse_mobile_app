@@ -63,7 +63,7 @@ class EntriesBloc extends Bloc<EntriesEvent, EntriesState> {
 
     result.fold(
       (failure) {
-        print('❌ Load entries failed: ${failure.toString()}');
+        print('❌ Load entries failed: ${failure}');
         emit(EntriesError(
           failure: failure,
           message: _getErrorMessage(failure),
@@ -172,7 +172,7 @@ class EntriesBloc extends Bloc<EntriesEvent, EntriesState> {
 
       result.fold(
         (failure) {
-          print('❌ Update entry failed: ${failure.toString()}');
+          print('❌ Update entry failed: ${failure}');
           emit(EntriesError(
             failure: failure,
             message: _getErrorMessage(failure),

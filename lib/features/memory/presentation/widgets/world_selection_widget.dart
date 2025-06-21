@@ -14,10 +14,10 @@ import 'package:uuid/uuid.dart';
 /// Widget for selecting world icons in memory creation
 class WorldSelectionWidget extends StatefulWidget {
   const WorldSelectionWidget({
-    super.key,
     required this.selectedEmoji,
     required this.onWorldIconsChanged,
     required this.initialWorldIcons,
+    super.key,
   });
 
   final EmojiOption selectedEmoji;
@@ -44,7 +44,7 @@ class _WorldSelectionWidgetState extends State<WorldSelectionWidget> {
   void _initializeSelectedIndices() {
     if (widget.initialWorldIcons.isNotEmpty) {
       final state = context.read<WorldBloc>().state;
-      for (int i = 0; i < state.worlds.length; i++) {
+      for (var i = 0; i < state.worlds.length; i++) {
         final world = state.worlds[i];
         if (widget.initialWorldIcons
             .any((w) => w.icon == world.icon && w.name == world.name)) {
@@ -118,7 +118,7 @@ class _WorldSelectionWidgetState extends State<WorldSelectionWidget> {
         if (!state.isLoading && state.worlds.isNotEmpty) {
           if (widget.initialWorldIcons.isNotEmpty) {
             final newSelectedIndices = <int>{};
-            for (int i = 0; i < state.worlds.length; i++) {
+            for (var i = 0; i < state.worlds.length; i++) {
               final world = state.worlds[i];
               if (widget.initialWorldIcons
                   .any((w) => w.icon == world.icon && w.name == world.name)) {
@@ -143,19 +143,12 @@ class _WorldSelectionWidgetState extends State<WorldSelectionWidget> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    left: MemoryCreationConstants.defaultPadding,
-                    right: MemoryCreationConstants.defaultPadding,
-                    top: MemoryCreationConstants.largePadding,
-                  ),
-                  child: Text(
-                    isAdding
-                        ? 'Create Your World Symbol'
-                        : 'Pick Your World Symbols (${selectedWorldIndices.length} selected)',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                Text(
+                  isAdding
+                      ? 'Create Your World Symbol'
+                      : 'Pick Your World Symbols (${selectedWorldIndices.length} selected)',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 if (!isAdding) ...[
@@ -226,20 +219,15 @@ class _WorldSelectionWidgetState extends State<WorldSelectionWidget> {
                 ],
                 if (isAdding) ...[
                   const SizedBox(height: MemoryCreationConstants.largePadding),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: MemoryCreationConstants.largePadding,
-                    ),
-                    child: CustomeTextField(
-                      controller: nameController,
-                      hintText: 'Add World Name...',
-                      fontSize: 16,
-                      validator: (p0) => null,
-                      textStyle: theme.textTheme.titleMedium,
-                      animateHint: true,
-                      hintColor: colorScheme.outlineVariant,
-                      textColor: Colors.black,
-                    ),
+                  CustomeTextField(
+                    controller: nameController,
+                    hintText: 'Add World Name...',
+                    fontSize: 16,
+                    validator: (p0) => null,
+                    textStyle: theme.textTheme.titleMedium,
+                    animateHint: true,
+                    hintColor: colorScheme.outlineVariant,
+                    textColor: Colors.black,
                   ),
                   const SizedBox(height: 12),
                   Padding(
@@ -340,21 +328,40 @@ class _WorldSelectionWidgetState extends State<WorldSelectionWidget> {
 
   List<IconData> _getAvailableIcons() {
     return [
-      Icons.star,
-      Icons.favorite,
-      Icons.home,
-      Icons.person,
-      Icons.music_note,
-      Icons.ac_unit,
-      Icons.cake,
-      Icons.beach_access,
-      Icons.book,
-      Icons.camera_alt,
-      Icons.flight,
-      Icons.flag,
-      Icons.lightbulb,
-      Icons.mood,
-      Icons.phone,
+      Icons.star_outline,
+      Icons.favorite_outline,
+      Icons.home_outlined,
+      Icons.person_outline,
+      Icons.music_note_outlined,
+      Icons.ac_unit_outlined,
+      Icons.cake_outlined,
+      Icons.beach_access_outlined,
+      Icons.book_outlined,
+      Icons.camera_alt_outlined,
+      Icons.flight_outlined,
+      Icons.flag_outlined,
+      Icons.lightbulb_outline,
+      Icons.mood_outlined,
+      Icons.phone_outlined,
+
+      // Newly added outline icons:
+      Icons.pets_outlined,
+      Icons.shopping_cart_outlined,
+      Icons.sports_esports_outlined,
+      Icons.fitness_center_outlined,
+      Icons.local_cafe_outlined,
+      Icons.movie_outlined,
+      Icons.park_outlined,
+      Icons.palette_outlined,
+      Icons.wb_sunny_outlined,
+      Icons.bolt_outlined,
+      Icons.brush_outlined,
+      Icons.directions_walk_outlined,
+      Icons.nightlight_outlined,
+      Icons.emoji_nature_outlined,
+      Icons.public_outlined,
+      Icons.umbrella_outlined,
+      Icons.construction_outlined,
     ];
   }
 }

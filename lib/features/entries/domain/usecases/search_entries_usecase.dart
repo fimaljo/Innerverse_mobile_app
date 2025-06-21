@@ -5,20 +5,18 @@ import 'package:innerverse/features/entries/domain/repositories/entries_reposito
 import 'package:innerverse/features/entries/domain/usecases/base_usecase.dart';
 
 class SearchEntriesParams {
-  final String query;
-
   const SearchEntriesParams(this.query);
+  final String query;
 }
 
 class SearchEntriesUseCase
     implements BaseUseCase<List<Entry>, SearchEntriesParams> {
-  final EntriesRepository repository;
-
   SearchEntriesUseCase(this.repository);
+  final EntriesRepository repository;
 
   @override
   Future<Either<EntriesFailure, List<Entry>>> call(
       SearchEntriesParams params) async {
-    return await repository.searchEntries(params.query);
+    return repository.searchEntries(params.query);
   }
 }

@@ -4,9 +4,9 @@ import 'package:innerverse/core/events/app_events.dart';
 /// Global event bus service for cross-feature communication
 /// Follows singleton pattern and provides type-safe event streaming
 class EventBusService {
-  static final EventBusService _instance = EventBusService._internal();
   factory EventBusService() => _instance;
   EventBusService._internal();
+  static final EventBusService _instance = EventBusService._internal();
 
   final StreamController<AppEvent> _controller =
       StreamController<AppEvent>.broadcast();

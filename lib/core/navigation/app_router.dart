@@ -10,6 +10,8 @@ import 'package:innerverse/features/entries/domain/entities/entry.dart';
 import 'package:innerverse/features/entries/presentation/blocs/entries_bloc.dart';
 import 'package:innerverse/features/entries/presentation/blocs/entries_event.dart';
 import 'package:innerverse/features/entries/presentation/page/entries_page.dart';
+import 'package:innerverse/features/entries/presentation/page/image_viewer_page.dart';
+import 'package:innerverse/features/entries/presentation/page/text_viewer_page.dart';
 import 'package:innerverse/features/home/presentation/pages/home_page.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_bloc.dart';
 import 'package:innerverse/features/memory/presentation/pages/select_memory_type_page.dart';
@@ -91,7 +93,7 @@ class AppRouter {
           path: RouteConstants.editEntry,
           name: RouteConstants.editEntryName,
           builder: (context, state) {
-            final entry = state.extra as Entry;
+            final entry = state.extra! as Entry;
             return MultiBlocProvider(
               providers: [
                 BlocProvider(
@@ -105,6 +107,25 @@ class AppRouter {
                 ),
               ],
               child: SelectMemoryTypePage(entryToEdit: entry),
+            );
+          },
+        ),
+        GoRoute(
+          path: RouteConstants.entryImageViewer,
+          name: RouteConstants.entryImageViewerName,
+          builder: (context, state) {
+            final imagePath = state.extra! as String;
+            return EntryImageViewerPage(imagePath: imagePath);
+          },
+        ),
+        GoRoute(
+          path: RouteConstants.entryTextViewer,
+          name: RouteConstants.entryTextViewerName,
+          builder: (context, state) {
+            final data = state.extra! as Map<String, String?>;
+            return EntryTextViewerPage(
+              title: data['title'],
+              description: data['description'],
             );
           },
         ),

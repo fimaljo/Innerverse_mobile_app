@@ -6,16 +6,15 @@ import 'package:innerverse/features/memory/domain/failures/memory_failure.dart';
 import 'package:innerverse/features/memory/domain/repositories/i_memory_repository.dart';
 
 class EntriesRepositoryImpl implements EntriesRepository {
-  final IMemoryRepository memoryRepository;
-
   EntriesRepositoryImpl(this.memoryRepository);
+  final IMemoryRepository memoryRepository;
 
   @override
   Future<Either<EntriesFailure, List<Entry>>> getAllEntries() async {
     final result = memoryRepository.getAllMemories();
     return result.fold(
       (memoryFailure) => Left(_mapMemoryFailureToEntriesFailure(memoryFailure)),
-      (memories) => Right(memories),
+      Right.new,
     );
   }
 
@@ -25,7 +24,7 @@ class EntriesRepositoryImpl implements EntriesRepository {
     final result = memoryRepository.getMemoriesByDateRange(startDate, endDate);
     return result.fold(
       (memoryFailure) => Left(_mapMemoryFailureToEntriesFailure(memoryFailure)),
-      (memories) => Right(memories),
+      Right.new,
     );
   }
 
@@ -36,7 +35,7 @@ class EntriesRepositoryImpl implements EntriesRepository {
     // In a real implementation, you might want to implement search at the data source level
     final result = await getAllEntries();
     return result.fold(
-      (failure) => Left(failure),
+      Left.new,
       (entries) {
         if (query.isEmpty) return Right(entries);
 

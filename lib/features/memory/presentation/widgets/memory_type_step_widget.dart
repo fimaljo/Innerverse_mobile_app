@@ -8,7 +8,6 @@ import 'package:innerverse/features/memory/presentation/widgets/emoji_selector_w
 
 class MemoryTypeStepWidget extends StatelessWidget {
   const MemoryTypeStepWidget({
-    super.key,
     required this.speed,
     required this.selectedIndex,
     required this.selectedEmoji,
@@ -17,6 +16,7 @@ class MemoryTypeStepWidget extends StatelessWidget {
     required this.onEmojiSelected,
     required this.memoryData,
     required this.bounceAnimation,
+    super.key,
   });
 
   final double speed;

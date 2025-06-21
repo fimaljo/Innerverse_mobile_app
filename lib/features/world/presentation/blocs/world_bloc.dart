@@ -14,11 +14,6 @@ import 'package:innerverse/core/events/app_events.dart';
 import 'dart:async';
 
 class WorldBloc extends Bloc<WorldEvent, WorldState> {
-  final EventBusService _eventBus = EventBusService();
-  late final StreamSubscription<MemoryCreatedEvent> _memoryCreatedSubscription;
-  late final StreamSubscription<MemoryUpdatedEvent> _memoryUpdatedSubscription;
-  late final StreamSubscription<MemoryDeletedEvent> _memoryDeletedSubscription;
-
   WorldBloc({
     required GetAllWorldsUseCase getAllWorldsUseCase,
     required AddWorldUseCase addWorldUseCase,
@@ -68,6 +63,10 @@ class WorldBloc extends Bloc<WorldEvent, WorldState> {
       }
     });
   }
+  final EventBusService _eventBus = EventBusService();
+  late final StreamSubscription<MemoryCreatedEvent> _memoryCreatedSubscription;
+  late final StreamSubscription<MemoryUpdatedEvent> _memoryUpdatedSubscription;
+  late final StreamSubscription<MemoryDeletedEvent> _memoryDeletedSubscription;
 
   @override
   Future<void> close() {

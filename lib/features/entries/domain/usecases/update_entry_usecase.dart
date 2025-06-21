@@ -5,18 +5,16 @@ import 'package:innerverse/features/entries/domain/repositories/entries_reposito
 import 'package:innerverse/features/entries/domain/usecases/base_usecase.dart';
 
 class UpdateEntryParams {
-  final Entry entry;
-
   const UpdateEntryParams(this.entry);
+  final Entry entry;
 }
 
 class UpdateEntryUseCase implements BaseUseCase<void, UpdateEntryParams> {
-  final EntriesRepository repository;
-
   UpdateEntryUseCase(this.repository);
+  final EntriesRepository repository;
 
   @override
   Future<Either<EntriesFailure, void>> call(UpdateEntryParams params) async {
-    return await repository.updateEntry(params.entry);
+    return repository.updateEntry(params.entry);
   }
 }

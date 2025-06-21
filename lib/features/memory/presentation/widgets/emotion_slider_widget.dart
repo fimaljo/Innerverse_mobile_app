@@ -8,11 +8,11 @@ import 'package:innerverse/shared/buttons/app_primary_button.dart';
 /// Widget for the emotion slider with half-circle design
 class EmotionSliderWidget extends StatefulWidget {
   const EmotionSliderWidget({
-    super.key,
     required this.selectedEmoji,
     required this.onChanged,
     required this.onNextPressed,
     required this.initialValue,
+    super.key,
   });
 
   final EmojiOption selectedEmoji;

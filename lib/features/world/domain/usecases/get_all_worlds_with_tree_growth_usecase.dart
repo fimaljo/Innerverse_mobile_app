@@ -33,7 +33,7 @@ class GetAllWorldsWithTreeGrowthUseCase
       final worldsResult = await _worldRepository.getAllWorlds();
 
       return worldsResult.fold(
-        (failure) => left(failure),
+        left,
         (worlds) async {
           final worldsWithTreeGrowth = <WorldWithTreeGrowth>[];
 
@@ -42,7 +42,7 @@ class GetAllWorldsWithTreeGrowthUseCase
                 await _calculateWorldTreeGrowthUseCase(world.id);
 
             treeGrowthResult.fold(
-              (failure) => left(failure),
+              left,
               (treeGrowthData) {
                 worldsWithTreeGrowth.add(WorldWithTreeGrowth(
                   world: world,
@@ -56,7 +56,7 @@ class GetAllWorldsWithTreeGrowthUseCase
         },
       );
     } catch (e) {
-      return left(WorldFailure.storageError());
+      return left(const WorldFailure.storageError());
     }
   }
 }

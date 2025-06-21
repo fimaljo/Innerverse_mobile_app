@@ -28,12 +28,13 @@ import 'package:innerverse/shared/buttons/rounded_icon_button.dart'
 import 'package:rive/rive.dart' as rive;
 
 class SelectMemoryTypePage extends StatefulWidget {
-  final Entry? entryToEdit; // Optional entry for editing mode
+  // Optional entry for editing mode
 
   const SelectMemoryTypePage({
     super.key,
     this.entryToEdit,
   });
+  final Entry? entryToEdit;
 
   @override
   State<SelectMemoryTypePage> createState() => _SelectMemoryTypePageState();
@@ -100,7 +101,7 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
         worldIcons: List.from(entry.worldIcons),
         title: entry.title,
         description: entry.description,
-        images: entry.images,
+        images: entry.images != null ? List<String>.from(entry.images!) : null,
       );
 
       speed = entry.emotionSliderValue;
@@ -231,9 +232,9 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
     final textTheme = Theme.of(context).textTheme;
     final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
     final selectedEmoji = memoryData.emojiOption;
-    final minSpeed = 2.0;
-    final maxSpeed = 8.0;
-    final particleCount = 50;
+    const minSpeed = 2.0;
+    const maxSpeed = 8.0;
+    const particleCount = 50;
 
     return MultiBlocListener(
       listeners: [

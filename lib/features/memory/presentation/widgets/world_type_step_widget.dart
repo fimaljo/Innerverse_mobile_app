@@ -18,12 +18,12 @@ import 'package:uuid/uuid.dart';
 
 class WorldTypeStepWidget extends StatefulWidget {
   const WorldTypeStepWidget({
-    super.key,
     required this.onWorldIconsChanged,
     required this.onBack,
     required this.onSubmit,
     required this.selectedData,
     required this.memoryData,
+    super.key,
     this.isEditMode = false,
   });
 
@@ -54,7 +54,7 @@ class _WorldTypeStepWidgetState extends State<WorldTypeStepWidget> {
   void _initializeSelectedIndices() {
     if (widget.memoryData.worldIcons.isNotEmpty) {
       final state = context.read<WorldBloc>().state;
-      for (int i = 0; i < state.worlds.length; i++) {
+      for (var i = 0; i < state.worlds.length; i++) {
         final world = state.worlds[i];
         if (widget.memoryData.worldIcons
             .any((w) => w.icon == world.icon && w.name == world.name)) {
@@ -135,21 +135,40 @@ class _WorldTypeStepWidgetState extends State<WorldTypeStepWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final allIcons = [
-      Icons.star,
-      Icons.favorite,
-      Icons.home,
-      Icons.person,
-      Icons.music_note,
-      Icons.ac_unit,
-      Icons.cake,
-      Icons.beach_access,
-      Icons.book,
-      Icons.camera_alt,
-      Icons.flight,
-      Icons.flag,
-      Icons.lightbulb,
-      Icons.mood,
-      Icons.phone,
+      Icons.star_outline,
+      Icons.favorite_outline,
+      Icons.home_outlined,
+      Icons.person_outline,
+      Icons.music_note_outlined,
+      Icons.ac_unit_outlined,
+      Icons.cake_outlined,
+      Icons.beach_access_outlined,
+      Icons.book_outlined,
+      Icons.camera_alt_outlined,
+      Icons.flight_outlined,
+      Icons.flag_outlined,
+      Icons.lightbulb_outline,
+      Icons.mood_outlined,
+      Icons.phone_outlined,
+
+      // Newly added outline icons:
+      Icons.pets_outlined,
+      Icons.shopping_cart_outlined,
+      Icons.sports_esports_outlined,
+      Icons.fitness_center_outlined,
+      Icons.local_cafe_outlined,
+      Icons.movie_outlined,
+      Icons.park_outlined,
+      Icons.palette_outlined,
+      Icons.wb_sunny_outlined,
+      Icons.bolt_outlined,
+      Icons.brush_outlined,
+      Icons.directions_walk_outlined,
+      Icons.nightlight_outlined,
+      Icons.emoji_nature_outlined,
+      Icons.public_outlined,
+      Icons.umbrella_outlined,
+      Icons.construction_outlined,
     ];
 
     final textTheme = theme.textTheme;
@@ -160,7 +179,7 @@ class _WorldTypeStepWidgetState extends State<WorldTypeStepWidget> {
         if (!state.isLoading && state.worlds.isNotEmpty) {
           if (widget.memoryData.worldIcons.isNotEmpty) {
             final newSelectedIndices = <int>{};
-            for (int i = 0; i < state.worlds.length; i++) {
+            for (var i = 0; i < state.worlds.length; i++) {
               final world = state.worlds[i];
               if (widget.memoryData.worldIcons
                   .any((w) => w.icon == world.icon && w.name == world.name)) {

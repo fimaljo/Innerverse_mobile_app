@@ -13,8 +13,6 @@ import 'package:innerverse/features/memory/presentation/blocs/memory_event.dart'
 import 'package:innerverse/features/memory/presentation/blocs/memory_state.dart';
 
 class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
-  final EventBusService _eventBus = EventBusService();
-
   MemoryBloc({
     required GetAllMemoriesUseCase getAllMemoriesUseCase,
     required AddMemoryUseCase addMemoryUseCase,
@@ -42,6 +40,7 @@ class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
     on<SaveMemoryDraft>(_onSaveMemoryDraft);
     on<CreateMemoryFromData>(_onCreateMemoryFromData);
   }
+  final EventBusService _eventBus = EventBusService();
 
   final GetAllMemoriesUseCase _getAllMemoriesUseCase;
   final AddMemoryUseCase _addMemoryUseCase;
@@ -404,7 +403,6 @@ class MemoryBloc extends Bloc<MemoryEvent, MemoryState> {
                 memories: memories,
                 filteredMemories: memories,
                 isCreating: false,
-                memoryCreationData: null, // Clear creation data
               ));
               // Emit global event for memory creation
               _eventBus.emit(const MemoryCreatedEvent());

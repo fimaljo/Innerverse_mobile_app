@@ -3,9 +3,9 @@ import 'package:innerverse/features/memory/data/adapters/icon_data_adapter.dart'
 import 'package:innerverse/features/memory/data/adapters/time_of_day_adapter.dart';
 import 'package:innerverse/features/memory/data/models/memory_model.dart';
 import 'package:innerverse/features/world/data/adapters/world_icon_adapter.dart';
-import 'package:innerverse/features/world/data/models/world_icon_model.dart';
 import 'package:innerverse/features/world/data/adapters/world_icon_model_list_adapter.dart'
     as world_adapters;
+import 'package:innerverse/features/world/data/models/world_icon_model.dart';
 
 class HiveInit {
   static Future<void> init() async {

@@ -27,8 +27,8 @@ class _WorldPageState extends State<WorldPage> with TickerProviderStateMixin {
       vsync: this,
     );
     _updateAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
+      begin: 0,
+      end: 1,
     ).animate(CurvedAnimation(
       parent: _updateAnimationController,
       curve: Curves.easeInOut,
@@ -94,15 +94,15 @@ class _WorldPageState extends State<WorldPage> with TickerProviderStateMixin {
   String _getRainMessage(bool isRaining, int daysSinceLastMemory) {
     if (isRaining) {
       if (daysSinceLastMemory == 1) {
-        return '🌧️ It\'s been 1 minute since your last memory';
+        return "🌧️ It's been 1 minute since your last memory";
       } else if (daysSinceLastMemory == 2) {
-        return '🌧️💨 It\'s been 2 minutes - the storm is growing stronger';
+        return "🌧️💨 It's been 2 minutes - the storm is growing stronger";
       } else if (daysSinceLastMemory == 3) {
-        return '⛈️ It\'s been 3 minutes - thunder echoes through the darkness';
+        return "⛈️ It's been 3 minutes - thunder echoes through the darkness";
       } else if (daysSinceLastMemory >= 4 && daysSinceLastMemory <= 7) {
-        return '⛈️🌩️ It\'s been $daysSinceLastMemory minutes - a fierce storm rages';
+        return "⛈️🌩️ It's been $daysSinceLastMemory minutes - a fierce storm rages";
       } else {
-        return '🌩️⚡ It\'s been $daysSinceLastMemory minutes - the storm is relentless';
+        return "🌩️⚡ It's been $daysSinceLastMemory minutes - the storm is relentless";
       }
     }
     return '';
@@ -196,7 +196,7 @@ class _WorldPageState extends State<WorldPage> with TickerProviderStateMixin {
               ),
 
               // 🌍 World Selector
-              Positioned(
+              const Positioned(
                 top: 50,
                 left: 0,
                 right: 0,
@@ -296,7 +296,6 @@ class _WorldPageState extends State<WorldPage> with TickerProviderStateMixin {
                                 color: _shouldUseLightText(state)
                                     ? Colors.white.withOpacity(0.3)
                                     : Colors.black.withOpacity(0.3),
-                                width: 1,
                               ),
                             ),
                             child: Text(

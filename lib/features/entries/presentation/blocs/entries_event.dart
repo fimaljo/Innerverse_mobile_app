@@ -13,9 +13,8 @@ class LoadEntries extends EntriesEvent {
 }
 
 class SearchEntries extends EntriesEvent {
-  final String query;
-
   const SearchEntries(this.query);
+  final String query;
 
   @override
   List<Object?> get props => [query];
@@ -26,18 +25,16 @@ class RefreshEntries extends EntriesEvent {
 }
 
 class UpdateEntry extends EntriesEvent {
-  final Entry entry;
-
   const UpdateEntry(this.entry);
+  final Entry entry;
 
   @override
   List<Object?> get props => [entry];
 }
 
 class DeleteEntry extends EntriesEvent {
-  final String id;
-
   const DeleteEntry(this.id);
+  final String id;
 
   @override
   List<Object?> get props => [id];
