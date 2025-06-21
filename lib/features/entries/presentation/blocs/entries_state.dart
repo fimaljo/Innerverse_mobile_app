@@ -14,13 +14,12 @@ class EntriesInitial extends EntriesState {}
 class EntriesLoading extends EntriesState {}
 
 class EntriesLoaded extends EntriesState {
-  final List<Entry> entries;
-  final String? searchQuery;
-
   const EntriesLoaded({
     required this.entries,
     this.searchQuery,
   });
+  final List<Entry> entries;
+  final String? searchQuery;
 
   @override
   List<Object?> get props => [entries, searchQuery];
@@ -36,14 +35,61 @@ class EntriesLoaded extends EntriesState {
   }
 }
 
-class EntriesError extends EntriesState {
-  final EntriesFailure failure;
-  final String message;
+class EntryUpdating extends EntriesState {
+  const EntryUpdating({
+    required this.entries,
+    this.searchQuery,
+  });
+  final List<Entry> entries;
+  final String? searchQuery;
 
+  @override
+  List<Object?> get props => [entries, searchQuery];
+}
+
+class EntryDeleting extends EntriesState {
+  const EntryDeleting({
+    required this.entries,
+    this.searchQuery,
+  });
+  final List<Entry> entries;
+  final String? searchQuery;
+
+  @override
+  List<Object?> get props => [entries, searchQuery];
+}
+
+class EntryUpdated extends EntriesState {
+  const EntryUpdated({
+    required this.entries,
+    this.searchQuery,
+  });
+  final List<Entry> entries;
+  final String? searchQuery;
+
+  @override
+  List<Object?> get props => [entries, searchQuery];
+}
+
+class EntryDeleted extends EntriesState {
+  const EntryDeleted({
+    required this.entries,
+    this.searchQuery,
+  });
+  final List<Entry> entries;
+  final String? searchQuery;
+
+  @override
+  List<Object?> get props => [entries, searchQuery];
+}
+
+class EntriesError extends EntriesState {
   const EntriesError({
     required this.failure,
     required this.message,
   });
+  final EntriesFailure failure;
+  final String message;
 
   @override
   List<Object?> get props => [failure, message];

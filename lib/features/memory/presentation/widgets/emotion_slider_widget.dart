@@ -8,11 +8,11 @@ import 'package:innerverse/shared/buttons/app_primary_button.dart';
 /// Widget for the emotion slider with half-circle design
 class EmotionSliderWidget extends StatefulWidget {
   const EmotionSliderWidget({
-    super.key,
     required this.selectedEmoji,
     required this.onChanged,
     required this.onNextPressed,
     required this.initialValue,
+    super.key,
   });
 
   final EmojiOption selectedEmoji;
@@ -99,18 +99,15 @@ class _EmotionSliderWidgetState extends State<EmotionSliderWidget> {
                 ),
                 Positioned(
                   bottom: 10,
-                  child: Hero(
-                    tag: 'next_button',
-                    child: AppPrimaryButton(
-                      onTap: widget.onNextPressed,
-                      height: size * 0.2,
-                      minWidth: size * 0.2,
-                      maxWidth: size * 0.3,
-                      gradientColors: widget.selectedEmoji.gradient,
-                      child: const Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        color: Colors.white,
-                      ),
+                  child: AppPrimaryButton(
+                    onTap: widget.onNextPressed,
+                    height: size * 0.2,
+                    minWidth: size * 0.2,
+                    maxWidth: size * 0.3,
+                    gradientColors: widget.selectedEmoji.gradient,
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.white,
                     ),
                   ),
                 ),

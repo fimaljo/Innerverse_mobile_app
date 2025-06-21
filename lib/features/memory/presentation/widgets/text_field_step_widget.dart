@@ -18,13 +18,13 @@ import 'package:uuid/uuid.dart';
 
 class TextFieldStepWidget extends StatefulWidget {
   const TextFieldStepWidget({
-    super.key,
     required this.onBack,
     required this.onSubmit,
     required this.selectedData,
     required this.memoryData,
     required this.bottomPageController,
     required this.onMemoryDataUpdated,
+    super.key,
   });
 
   final VoidCallback onBack;
@@ -72,7 +72,9 @@ class _TextFieldStepWidgetState extends State<TextFieldStepWidget> {
   void _initializeControllers() {
     titleController.text = widget.memoryData.title ?? '';
     noteController.text = widget.memoryData.description ?? '';
-    selectedImages = widget.memoryData.images ?? [];
+    selectedImages = widget.memoryData.images != null
+        ? List<String>.from(widget.memoryData.images!)
+        : [];
   }
 
   Future<void> _loadDraft() async {
@@ -84,8 +86,10 @@ class _TextFieldStepWidgetState extends State<TextFieldStepWidget> {
         noteController.text = draft.description ?? '';
         widget.memoryData.title = draft.title;
         widget.memoryData.description = draft.description;
-        selectedImages = draft.images ?? [];
-        widget.memoryData.images = draft.images;
+        selectedImages =
+            draft.images != null ? List<String>.from(draft.images!) : [];
+        widget.memoryData.images =
+            draft.images != null ? List<String>.from(draft.images!) : null;
         widget.memoryData.worldIcons = draft.worldIcons;
       });
     }
@@ -111,9 +115,7 @@ class _TextFieldStepWidgetState extends State<TextFieldStepWidget> {
 
   void _debouncedSave(String value) {
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(_debounceDuration, () {
-      _saveDraft();
-    });
+    _debounceTimer = Timer(_debounceDuration, _saveDraft);
   }
 
   @override
@@ -212,10 +214,9 @@ class _TextFieldStepWidgetState extends State<TextFieldStepWidget> {
   }
 
   Future<void> pickImages() async {
-    final List<XFile>? pickedFiles = await _imagePicker.pickMultiImage();
+    final List<XFile> pickedFiles = await _imagePicker.pickMultiImage();
     if (pickedFiles != null && pickedFiles.isNotEmpty) {
-      final List<String> persistentPaths =
-          await _copyImagesToPersistentStorage(pickedFiles);
+      final persistentPaths = await _copyImagesToPersistentStorage(pickedFiles);
       setState(() {
         selectedImages.addAll(persistentPaths);
         widget.memoryData.images = selectedImages;
@@ -225,7 +226,7 @@ class _TextFieldStepWidgetState extends State<TextFieldStepWidget> {
   }
 
   Future<List<String>> _copyImagesToPersistentStorage(List<XFile> files) async {
-    final List<String> persistentPaths = [];
+    final persistentPaths = <String>[];
     final appDir = await getApplicationDocumentsDirectory();
     final imagesDir = Directory('${appDir.path}/memory_images');
 
@@ -406,7 +407,7 @@ class _TextFieldStepWidgetState extends State<TextFieldStepWidget> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceVariant,
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: colorScheme.primary),
                     ),
@@ -432,7 +433,7 @@ class _TextFieldStepWidgetState extends State<TextFieldStepWidget> {
                     child: GestureDetector(
                       onTap: () => removeImage(index),
                       child: Container(
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: Colors.black54,
                           shape: BoxShape.circle,
                         ),

@@ -3,8 +3,9 @@ import 'package:innerverse/features/memory/data/adapters/icon_data_adapter.dart'
 import 'package:innerverse/features/memory/data/adapters/time_of_day_adapter.dart';
 import 'package:innerverse/features/memory/data/models/memory_model.dart';
 import 'package:innerverse/features/world/data/adapters/world_icon_adapter.dart';
+import 'package:innerverse/features/world/data/adapters/world_icon_model_list_adapter.dart'
+    as world_adapters;
 import 'package:innerverse/features/world/data/models/world_icon_model.dart';
-import 'package:innerverse/features/world/data/adapters/world_icon_model_list_adapter.dart';
 
 class HiveInit {
   static Future<void> init() async {
@@ -41,6 +42,10 @@ class HiveInit {
     }
     if (!Hive.isAdapterRegistered(4)) {
       Hive.registerAdapter(TimeOfDayAdapter()); // typeId: 4
+    }
+    if (!Hive.isAdapterRegistered(10)) {
+      Hive.registerAdapter(
+          world_adapters.WorldIconModelListAdapter()); // typeId: 10
     }
   }
 

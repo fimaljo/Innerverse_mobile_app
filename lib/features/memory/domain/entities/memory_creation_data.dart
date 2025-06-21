@@ -66,18 +66,12 @@ class MemoryCreationData {
 
   /// Validates if the memory creation data is complete
   bool get isValid {
-    return emojiOption != null &&
-        emotionSliderValue >= 0 &&
-        emotionSliderValue <= 10;
+    return emotionSliderValue >= 0 && emotionSliderValue <= 10;
   }
 
   /// Gets the validation errors for this data
   List<String> get validationErrors {
     final errors = <String>[];
-
-    if (emojiOption == null) {
-      errors.add('Emoji option is required');
-    }
 
     if (emotionSliderValue < 0 || emotionSliderValue > 10) {
       errors.add('Emotion value must be between 0 and 10');

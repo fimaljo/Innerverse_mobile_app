@@ -16,7 +16,7 @@ Future<void> setupServiceLocator(GoRouter router, RouteTracker tracker) async {
   sl
     ..registerLazySingleton<GoRouter>(() => router)
     ..registerLazySingleton<RouteTracker>(() => tracker)
-    ..registerLazySingleton<EventBusService>(() => EventBusService());
+    ..registerLazySingleton<EventBusService>(EventBusService.new);
 
   // Feature-wise setup
   setupNavigationDependencies();

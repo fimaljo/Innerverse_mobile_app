@@ -8,10 +8,10 @@ import 'package:innerverse/features/memory/presentation/constants/memory_creatio
 /// Widget for selecting emoji options in memory creation
 class EmojiSelectorWidget extends StatelessWidget {
   const EmojiSelectorWidget({
-    super.key,
     required this.selectedIndex,
     required this.onEmojiSelected,
     required this.bounceAnimation,
+    super.key,
   });
 
   final int selectedIndex;
@@ -73,9 +73,9 @@ class EmojiSelectorWidget extends StatelessWidget {
 /// Widget for displaying the selected emoji with animation
 class EmojiDisplayWidget extends StatelessWidget {
   const EmojiDisplayWidget({
-    super.key,
     required this.selectedEmoji,
     required this.bounceAnimation,
+    super.key,
   });
 
   final EmojiOption selectedEmoji;

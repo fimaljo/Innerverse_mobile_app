@@ -17,6 +17,14 @@ class RouteConstants {
   static const String entries = '/entries';
   static const String worldTree = '/world';
   static const String analytics = '/analytics';
+  static const String editEntry = '/edit-entry';
+  static const String editEntryName = 'editEntry';
+
+  // Viewer pages
+  static const String entryImageViewer = '/entry-image-viewer';
+  static const String entryImageViewerName = 'entryImageViewer';
+  static const String entryTextViewer = '/entry-text-viewer';
+  static const String entryTextViewerName = 'entryTextViewer';
 
   // Route names
 

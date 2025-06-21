@@ -4,12 +4,12 @@ import 'package:innerverse/features/world/data/models/world_icon_model.dart';
 
 class WorldIconsDisplayWidget extends StatefulWidget {
   const WorldIconsDisplayWidget({
-    super.key,
     required this.worldIcons,
     required this.selectedIndex,
     required this.emojiPageController,
     required this.bounceAnimation,
     required this.textTheme,
+    super.key,
   });
 
   final List<WorldIconModel> worldIcons;

@@ -6,6 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:innerverse/core/constants/emoji_options.dart';
+import 'package:innerverse/core/events/app_events.dart';
+import 'package:innerverse/core/services/event_bus_service.dart';
+import 'package:innerverse/features/entries/domain/entities/entry.dart';
+import 'package:innerverse/features/entries/presentation/blocs/entries_bloc.dart';
+import 'package:innerverse/features/entries/presentation/blocs/entries_event.dart';
+import 'package:innerverse/features/entries/presentation/blocs/entries_state.dart';
 import 'package:innerverse/features/memory/domain/entities/emoji_option.dart';
 import 'package:innerverse/features/memory/domain/entities/memory_creation_data.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_bloc.dart';
@@ -22,7 +28,13 @@ import 'package:innerverse/shared/buttons/rounded_icon_button.dart'
 import 'package:rive/rive.dart' as rive;
 
 class SelectMemoryTypePage extends StatefulWidget {
-  const SelectMemoryTypePage({super.key});
+  // Optional entry for editing mode
+
+  const SelectMemoryTypePage({
+    super.key,
+    this.entryToEdit,
+  });
+  final Entry? entryToEdit;
 
   @override
   State<SelectMemoryTypePage> createState() => _SelectMemoryTypePageState();
@@ -40,6 +52,7 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
   int selectedWorldIndex = 0;
   double speed = 5;
   late MemoryCreationData memoryData;
+  bool get isEditMode => widget.entryToEdit != null;
 
   @override
   void initState() {
@@ -47,6 +60,13 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
     _initializeControllers();
     _initializeMemoryData();
     _setupListeners();
+
+    // If in edit mode, ensure EntriesBloc is loaded with current entries
+    if (isEditMode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<EntriesBloc>().add(const LoadEntries());
+      });
+    }
   }
 
   void _initializeControllers() {
@@ -64,18 +84,42 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
   }
 
   void _initializeMemoryData() {
-    memoryData = MemoryCreationData(
-      emojiOption: emojiOptions[0],
-      emotionSliderValue: 5,
-      dateTime: DateTime.now(),
-      time: TimeOfDay.now(),
-      worldIcons: [],
-    );
+    if (isEditMode) {
+      // Initialize with existing entry data for editing
+      final entry = widget.entryToEdit!;
+
+      // Find the emoji index based on the emoji label
+      final emojiIndex =
+          emojiOptions.indexWhere((emoji) => emoji.label == entry.emojiLabel);
+      selectedIndex = emojiIndex != -1 ? emojiIndex : 0;
+
+      memoryData = MemoryCreationData(
+        emojiOption: emojiOptions[selectedIndex],
+        emotionSliderValue: entry.emotionSliderValue,
+        dateTime: entry.dateTime,
+        time: entry.time,
+        worldIcons: List.from(entry.worldIcons),
+        title: entry.title,
+        description: entry.description,
+        images: entry.images != null ? List<String>.from(entry.images!) : null,
+      );
+
+      speed = entry.emotionSliderValue;
+    } else {
+      // Initialize with default data for creation
+      memoryData = MemoryCreationData(
+        emojiOption: emojiOptions[0],
+        emotionSliderValue: 5,
+        dateTime: DateTime.now(),
+        time: TimeOfDay.now(),
+        worldIcons: [],
+      );
+    }
 
     context.read<MemoryBloc>().add(InitializeMemoryCreation(memoryData));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      onEmojiSelected(0);
+      onEmojiSelected(selectedIndex);
     });
   }
 
@@ -185,14 +229,50 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<MemoryBloc, MemoryState>(
-      listener: (context, state) {
-        if (state.error != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.error!)),
-          );
-        }
-      },
+    final textTheme = Theme.of(context).textTheme;
+    final isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+    final selectedEmoji = memoryData.emojiOption;
+    const minSpeed = 2.0;
+    const maxSpeed = 8.0;
+    const particleCount = 50;
+
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<EntriesBloc, EntriesState>(
+          listener: (context, state) {
+            if (isEditMode) {
+              if (state is EntriesLoaded) {
+                print('✅ Entries loaded successfully for edit mode');
+              } else if (state is EntryUpdated) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Entry updated successfully!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+                // Emit global event to refresh entries list
+                EventBusService().emit(const RefreshEntriesEvent());
+              } else if (state is EntriesError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: ${state.message}'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            }
+          },
+        ),
+        BlocListener<MemoryBloc, MemoryState>(
+          listener: (context, state) {
+            if (state.error != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.error!)),
+              );
+            }
+          },
+        ),
+      ],
       child: BlocBuilder<MemoryBloc, MemoryState>(
         builder: (context, state) {
           return _buildScaffold(state);
@@ -285,13 +365,51 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                     );
                   },
                   onSubmit: () {
-                    context
-                        .read<MemoryBloc>()
-                        .add(const CreateMemoryFromData());
+                    if (isEditMode) {
+                      // Check if EntriesBloc is ready for update
+                      final entriesState = context.read<EntriesBloc>().state;
+                      if (entriesState is! EntriesLoaded) {
+                        print(
+                            '❌ Cannot update entry: EntriesBloc not in EntriesLoaded state');
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Please wait while entries are loading...'),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                        return;
+                      }
+
+                      // Update existing entry
+                      final updatedEntry = Entry(
+                        id: widget.entryToEdit!.id,
+                        emojiLabel: memoryData.emojiOption.label,
+                        riveAsset: memoryData.emojiOption.riveAsset,
+                        emotionSliderValue: memoryData.emotionSliderValue,
+                        dateTime: memoryData.dateTime ?? DateTime.now(),
+                        time: memoryData.time ?? TimeOfDay.now(),
+                        title: memoryData.title,
+                        description: memoryData.description,
+                        worldIcons: memoryData.worldIcons,
+                        images: memoryData.images,
+                      );
+                      print(
+                          '🔄 Submitting update for entry: ${updatedEntry.id}');
+                      context
+                          .read<EntriesBloc>()
+                          .add(UpdateEntry(updatedEntry));
+                    } else {
+                      // Create new memory
+                      context
+                          .read<MemoryBloc>()
+                          .add(const CreateMemoryFromData());
+                    }
                     context.pop();
                   },
                   selectedData: selectedEmoji,
                   memoryData: memoryData,
+                  isEditMode: isEditMode,
                 ),
               ],
             ),
@@ -355,7 +473,7 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
                     _buildCloseButton(selectedEmoji),
                     if (bottomPageIndex != 2) ...[
                       Text(
-                        selectedEmoji.label,
+                        isEditMode ? 'Edit Memory' : selectedEmoji.label,
                         textAlign: TextAlign.center,
                         style: textTheme.headlineLarge,
                       ),
@@ -389,7 +507,7 @@ class _SelectMemoryTypePageState extends State<SelectMemoryTypePage>
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: GradientIconButton(
-          icon: Icons.close,
+          icon: isEditMode ? Icons.arrow_back : Icons.close,
           onTap: () => context.pop(),
           size: 48,
           gradientColors: selectedEmoji.gradient,

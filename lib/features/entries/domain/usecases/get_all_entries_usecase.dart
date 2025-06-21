@@ -5,12 +5,11 @@ import 'package:innerverse/features/entries/domain/repositories/entries_reposito
 import 'package:innerverse/features/entries/domain/usecases/base_usecase.dart';
 
 class GetAllEntriesUseCase implements BaseUseCase<List<Entry>, NoParams> {
-  final EntriesRepository repository;
-
   GetAllEntriesUseCase(this.repository);
+  final EntriesRepository repository;
 
   @override
   Future<Either<EntriesFailure, List<Entry>>> call(NoParams params) async {
-    return await repository.getAllEntries();
+    return repository.getAllEntries();
   }
 }

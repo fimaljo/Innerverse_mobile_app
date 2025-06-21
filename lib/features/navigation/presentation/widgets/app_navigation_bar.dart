@@ -21,37 +21,27 @@ class AppNavigationBar extends StatelessWidget {
       builder: (context, state) {
         final currentTab = state.currentTab;
 
-        return BottomNavigationBar(
-          currentIndex: _getTabIndex(currentTab),
-          onTap: (index) => _onTabTap(context, _getTabFromIndex(index)),
-          type: BottomNavigationBarType.fixed,
+        return NavigationBar(
+          height: 80,
+          selectedIndex: _getTabIndex(currentTab),
+          onDestinationSelected: (index) =>
+              _onTabTap(context, _getTabFromIndex(index)),
           backgroundColor: Theme.of(context).colorScheme.surface,
-          selectedItemColor: Theme.of(context).colorScheme.primary,
-          unselectedItemColor:
-              Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 12,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 12,
-          ),
-          elevation: 8,
-          items: const [
-            BottomNavigationBarItem(
+          indicatorColor: Theme.of(context).colorScheme.primaryContainer,
+          destinations: const [
+            NavigationDestination(
               icon: Icon(Icons.description_outlined),
-              activeIcon: Icon(Icons.description),
+              selectedIcon: Icon(Icons.description),
               label: 'Entries',
             ),
-            BottomNavigationBarItem(
+            NavigationDestination(
               icon: Icon(Icons.public_outlined),
-              activeIcon: Icon(Icons.public),
+              selectedIcon: Icon(Icons.public),
               label: 'Worlds',
             ),
-            BottomNavigationBarItem(
+            NavigationDestination(
               icon: Icon(Icons.show_chart_outlined),
-              activeIcon: Icon(Icons.show_chart),
+              selectedIcon: Icon(Icons.show_chart),
               label: 'Analytics',
             ),
           ],

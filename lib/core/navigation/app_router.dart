@@ -6,9 +6,12 @@ import 'package:go_router/go_router.dart';
 import 'package:innerverse/core/navigation/route_constants.dart';
 import 'package:innerverse/core/navigation/route_tracker.dart';
 import 'package:innerverse/features/analytics/presentation/page/analytics_page.dart';
+import 'package:innerverse/features/entries/domain/entities/entry.dart';
 import 'package:innerverse/features/entries/presentation/blocs/entries_bloc.dart';
 import 'package:innerverse/features/entries/presentation/blocs/entries_event.dart';
 import 'package:innerverse/features/entries/presentation/page/entries_page.dart';
+import 'package:innerverse/features/entries/presentation/page/image_viewer_page.dart';
+import 'package:innerverse/features/entries/presentation/page/text_viewer_page.dart';
 import 'package:innerverse/features/home/presentation/pages/home_page.dart';
 import 'package:innerverse/features/memory/presentation/blocs/memory_bloc.dart';
 import 'package:innerverse/features/memory/presentation/pages/select_memory_type_page.dart';
@@ -16,7 +19,7 @@ import 'package:innerverse/features/navigation/domain/entities/navigation_tab_en
 import 'package:innerverse/features/navigation/presentation/bloc/navigation_bloc.dart';
 import 'package:innerverse/features/navigation/presentation/bloc/navigation_event.dart';
 import 'package:innerverse/features/world/presentation/blocs/world_bloc.dart';
-import 'package:innerverse/features/world/world_page.dart';
+import 'package:innerverse/features/world/presentation/pages/world_page.dart';
 
 class AppRouter {
   static GoRouter createRouter(RouteTracker tracker) {
@@ -51,7 +54,10 @@ class AppRouter {
             GoRoute(
               path: RouteConstants.worldTree,
               name: RouteConstants.worldTreeName,
-              builder: (context, state) => const WorldPage(),
+              builder: (context, state) => BlocProvider(
+                create: (_) => GetIt.I<WorldBloc>(),
+                child: const WorldPage(),
+              ),
             ),
             GoRoute(
               path: RouteConstants.analytics,
@@ -74,9 +80,52 @@ class AppRouter {
                   BlocProvider(
                     create: (_) => GetIt.I<WorldBloc>(),
                   ),
+                  BlocProvider(
+                    create: (_) => GetIt.I<EntriesBloc>(),
+                  ),
                 ],
                 child: const SelectMemoryTypePage(),
               ),
+            );
+          },
+        ),
+        GoRoute(
+          path: RouteConstants.editEntry,
+          name: RouteConstants.editEntryName,
+          builder: (context, state) {
+            final entry = state.extra! as Entry;
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (_) => GetIt.I<MemoryBloc>(),
+                ),
+                BlocProvider(
+                  create: (_) => GetIt.I<WorldBloc>(),
+                ),
+                BlocProvider(
+                  create: (_) => GetIt.I<EntriesBloc>(),
+                ),
+              ],
+              child: SelectMemoryTypePage(entryToEdit: entry),
+            );
+          },
+        ),
+        GoRoute(
+          path: RouteConstants.entryImageViewer,
+          name: RouteConstants.entryImageViewerName,
+          builder: (context, state) {
+            final imagePath = state.extra! as String;
+            return EntryImageViewerPage(imagePath: imagePath);
+          },
+        ),
+        GoRoute(
+          path: RouteConstants.entryTextViewer,
+          name: RouteConstants.entryTextViewerName,
+          builder: (context, state) {
+            final data = state.extra! as Map<String, String?>;
+            return EntryTextViewerPage(
+              title: data['title'],
+              description: data['description'],
             );
           },
         ),
