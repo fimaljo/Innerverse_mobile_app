@@ -1,5 +1,7 @@
-import 'package:animated_background/animated_background.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:innerverse/core/constants/emoji_options.dart';
@@ -10,10 +12,7 @@ import 'package:innerverse/features/entries/presentation/blocs/entries_event.dar
 import 'package:innerverse/features/entries/presentation/blocs/entries_state.dart';
 import 'package:innerverse/features/world/data/models/world_icon_model.dart';
 import 'package:innerverse/shared/buttons/app_primary_button.dart';
-import 'package:innerverse/shared/widgets/custome_text_field.dart';
 import 'package:intl/intl.dart';
-import 'dart:io';
-
 import 'package:rive/rive.dart' as rive;
 
 class DateGroupedEntries {
@@ -76,6 +75,27 @@ class _EntriesPageState extends State<EntriesPage> {
         });
       }
     }
+  }
+
+  void _navigateToMonth(int direction) {
+    setState(() {
+      _currentMonth = DateTime(
+        _currentMonth.year,
+        _currentMonth.month + direction,
+      );
+
+      // If navigating to a different month, reset selected date to first day of that month
+      // unless it's the current month, then use today's date
+      final now = DateTime.now();
+      final newMonth = DateTime(_currentMonth.year, _currentMonth.month);
+      final currentMonth = DateTime(now.year, now.month);
+
+      if (newMonth.isAtSameMomentAs(currentMonth)) {
+        _selectedDate = DateTime(now.year, now.month, now.day);
+      } else {
+        _selectedDate = DateTime(_currentMonth.year, _currentMonth.month, 1);
+      }
+    });
   }
 
   List<DateGroupedEntries> _groupEntriesByDate(List<Entry> entries) {
@@ -477,8 +497,12 @@ class _EntriesPageState extends State<EntriesPage> {
                                     ),
                                   ),
                                   // Entries for this date
-                                  ...entryGroup.entries
-                                      .map((entry) => _EntryCard(entry: entry)),
+                                  ...entryGroup.entries.asMap().entries.map(
+                                        (entryMap) => _EntryCard(
+                                          entry: entryMap.value,
+                                          index: entryMap.key,
+                                        ),
+                                      ),
                                 ],
                               );
                             },
@@ -574,72 +598,96 @@ class _EntriesPageState extends State<EntriesPage> {
           date.month == _currentMonth.month;
     }).toSet();
 
-    return Column(
-      children: [
-        // Week header with expand icon
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                DateFormat('MMMM yyyy').format(_currentMonth),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '${currentMonthEntries.length} entries',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity! > 0) {
+          // Swipe right - go to previous month
+          _navigateToMonth(-1);
+        } else if (details.primaryVelocity! < 0) {
+          // Swipe left - go to next month
+          final nextMonth =
+              DateTime(_currentMonth.year, _currentMonth.month + 1);
+          if (nextMonth.isBefore(DateTime(now.year, now.month + 1))) {
+            _navigateToMonth(1);
+          }
+        }
+      },
+      child: Column(
+        children: [
+          // Week header with expand icon
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  DateFormat('MMMM yyyy').format(_currentMonth),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 8),
-                const Icon(
-                  Icons.keyboard_arrow_down,
-                  size: 20,
-                  color: Colors.grey,
-                ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        // Weekday Headers
-        Row(
-          children: ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-              .map((day) => Expanded(
-                    child: Center(
-                      child: Text(
-                        day,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '${currentMonthEntries.length} entries',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 20,
+                    color: Colors.grey,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Weekday Headers
+          Row(
+            children: ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+                .map((day) => Expanded(
+                      child: Center(
+                        child: Text(
+                          day,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
-                    ),
-                  ))
-              .toList(),
-        ),
-        const SizedBox(height: 8),
-        // Current week view
-        _buildCurrentWeekRow(currentMonthEntries, today),
-      ],
+                    ))
+                .toList(),
+          ),
+          const SizedBox(height: 8),
+          // Current week view
+          _buildCurrentWeekRow(currentMonthEntries, today),
+        ],
+      ),
     );
   }
 
   Widget _buildCurrentWeekRow(Set<DateTime> entryDates, DateTime today) {
-    final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+    // Always show the current week initially, or the week containing selected date if user has selected a different date
+    final weekStartDate = _selectedDate != null &&
+            (_selectedDate.year != today.year ||
+                _selectedDate.month != today.month ||
+                _selectedDate.day != today.day)
+        ? _selectedDate.subtract(Duration(days: _selectedDate.weekday - 1))
+        : today.subtract(Duration(days: today.weekday - 1));
 
     return Row(
       children: List.generate(7, (index) {
-        final date = startOfWeek.add(Duration(days: index));
+        final date = weekStartDate.add(Duration(days: index));
+        final isCurrentMonth = date.year == _currentMonth.year &&
+            date.month == _currentMonth.month;
+        // For week view, always highlight today's date if it's visible in the week
         final isToday = date.isAtSameMomentAs(today);
         final isSelected = date.isAtSameMomentAs(
           DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day),
@@ -704,214 +752,233 @@ class _EntriesPageState extends State<EntriesPage> {
           date.month == _currentMonth.month;
     }).toSet();
 
-    return Column(
-      children: [
-        // Month and Year Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Text(
-                DateFormat('MMMM yyyy').format(_currentMonth),
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      _currentMonth = DateTime(
-                        _currentMonth.year,
-                        _currentMonth.month - 1,
-                      );
-                    });
-                  },
-                  icon: const Icon(Icons.chevron_left),
-                  iconSize: 20,
-                ),
-                IconButton(
-                  onPressed: () {
-                    // Only allow navigation to current month or past months
-                    final nextMonth = DateTime(
-                      _currentMonth.year,
-                      _currentMonth.month + 1,
-                    );
-                    if (nextMonth.isBefore(DateTime(now.year, now.month + 1))) {
-                      setState(() {
-                        _currentMonth = nextMonth;
-                      });
-                    }
-                  },
-                  icon: Icon(
-                    Icons.chevron_right,
-                    size: 20,
-                    color: DateTime(_currentMonth.year, _currentMonth.month + 1)
-                            .isAfter(DateTime(now.year, now.month + 1))
-                        ? Colors.grey[400]
-                        : Colors.black,
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity! > 0) {
+          // Swipe right - go to previous month
+          _navigateToMonth(-1);
+        } else if (details.primaryVelocity! < 0) {
+          // Swipe left - go to next month
+          final nextMonth =
+              DateTime(_currentMonth.year, _currentMonth.month + 1);
+          if (nextMonth.isBefore(DateTime(now.year, now.month + 1))) {
+            _navigateToMonth(1);
+          }
+        }
+      },
+      child: Column(
+        children: [
+          // Month and Year Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  DateFormat('MMMM yyyy').format(_currentMonth),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 8),
-                const Icon(
-                  Icons.keyboard_arrow_up,
-                  size: 20,
-                  color: Colors.grey,
-                ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        // Weekday Headers
-        Row(
-          children: ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-              .map((day) => Expanded(
-                    child: Center(
-                      child: Text(
-                        day,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.grey,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      _navigateToMonth(-1);
+                    },
+                    icon: const Icon(Icons.chevron_left),
+                    iconSize: 20,
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      // Only allow navigation to current month or past months
+                      final nextMonth = DateTime(
+                        _currentMonth.year,
+                        _currentMonth.month + 1,
+                      );
+                      if (nextMonth
+                          .isBefore(DateTime(now.year, now.month + 1))) {
+                        _navigateToMonth(1);
+                      }
+                    },
+                    icon: Icon(
+                      Icons.chevron_right,
+                      size: 20,
+                      color:
+                          DateTime(_currentMonth.year, _currentMonth.month + 1)
+                                  .isAfter(DateTime(now.year, now.month + 1))
+                              ? Colors.grey[400]
+                              : Colors.black,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.keyboard_arrow_up,
+                    size: 20,
+                    color: Colors.grey,
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Weekday Headers
+          Row(
+            children: ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+                .map((day) => Expanded(
+                      child: Center(
+                        child: Text(
+                          day,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
-                    ),
-                  ))
-              .toList(),
-        ),
-        const SizedBox(height: 8),
-        // Calendar Grid
-        ...List.generate(
-          ((firstWeekday - 1 + daysInMonth) / 7).ceil(),
-          (weekIndex) => Row(
-            children: List.generate(7, (dayIndex) {
-              final dayNumber =
-                  weekIndex * 7 + dayIndex - (firstWeekday - 1) + 1;
-              final isCurrentMonth = dayNumber > 0 && dayNumber <= daysInMonth;
-              final currentDate =
-                  DateTime(_currentMonth.year, _currentMonth.month, dayNumber);
-              final isToday = currentDate.isAtSameMomentAs(today);
-              final isSelected = currentDate.isAtSameMomentAs(
-                DateTime(
-                    _selectedDate.year, _selectedDate.month, _selectedDate.day),
-              );
-              final hasEntry =
-                  isCurrentMonth && currentMonthEntries.contains(currentDate);
-              final isFutureDate = currentDate.isAfter(today);
+                    ))
+                .toList(),
+          ),
+          const SizedBox(height: 8),
+          // Calendar Grid
+          ...List.generate(
+            ((firstWeekday - 1 + daysInMonth) / 7).ceil(),
+            (weekIndex) => Row(
+              children: List.generate(7, (dayIndex) {
+                final dayNumber =
+                    weekIndex * 7 + dayIndex - (firstWeekday - 1) + 1;
+                final isCurrentMonth =
+                    dayNumber > 0 && dayNumber <= daysInMonth;
+                final currentDate = DateTime(
+                    _currentMonth.year, _currentMonth.month, dayNumber);
+                final isViewingCurrentMonth = _currentMonth.year == now.year &&
+                    _currentMonth.month == now.month;
+                final isToday = isCurrentMonth &&
+                    isViewingCurrentMonth &&
+                    currentDate.isAtSameMomentAs(today);
+                final isSelected = currentDate.isAtSameMomentAs(
+                  DateTime(_selectedDate.year, _selectedDate.month,
+                      _selectedDate.day),
+                );
+                final hasEntry =
+                    isCurrentMonth && currentMonthEntries.contains(currentDate);
+                final isFutureDate = currentDate.isAfter(today);
 
-              return Expanded(
-                child: Container(
-                  height: 40,
-                  margin: const EdgeInsets.all(1),
-                  child: isCurrentMonth
-                      ? GestureDetector(
-                          onTap: isFutureDate
-                              ? null // Disable tap for future dates
-                              : () {
-                                  setState(() {
-                                    _selectedDate = currentDate;
-                                    _isCalendarExpanded =
-                                        false; // Collapse calendar when date is selected
-                                  });
-                                },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? Colors.blue
-                                  : hasEntry
-                                      ? Colors.blue.withOpacity(0.2)
-                                      : isToday
-                                          ? Colors.blue.withOpacity(0.1)
-                                          : Colors.transparent,
-                              borderRadius: BorderRadius.circular(8),
-                              border: isToday && !isSelected
-                                  ? Border.all(color: Colors.blue, width: 2)
-                                  : null,
-                            ),
-                            child: Center(
-                              child: Text(
-                                dayNumber.toString(),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: hasEntry || isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                  color: isFutureDate
-                                      ? Colors
-                                          .grey[400] // Grey out future dates
-                                      : isSelected
-                                          ? Colors.white
-                                          : hasEntry
-                                              ? Colors.blue
-                                              : isToday
-                                                  ? Colors.blue
-                                                  : Colors.black87,
+                return Expanded(
+                  child: Container(
+                    height: 40,
+                    margin: const EdgeInsets.all(1),
+                    child: isCurrentMonth
+                        ? GestureDetector(
+                            onTap: isFutureDate
+                                ? null // Disable tap for future dates
+                                : () {
+                                    setState(() {
+                                      _selectedDate = currentDate;
+                                      _isCalendarExpanded =
+                                          false; // Collapse calendar when date is selected
+                                    });
+                                  },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? Colors.blue
+                                    : hasEntry
+                                        ? Colors.blue.withOpacity(0.2)
+                                        : isToday
+                                            ? Colors.blue.withOpacity(0.1)
+                                            : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                border: isToday && !isSelected
+                                    ? Border.all(color: Colors.blue, width: 2)
+                                    : null,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  dayNumber.toString(),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: hasEntry || isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: isFutureDate
+                                        ? Colors
+                                            .grey[400] // Grey out future dates
+                                        : isSelected
+                                            ? Colors.white
+                                            : hasEntry
+                                                ? Colors.blue
+                                                : isToday
+                                                    ? Colors.blue
+                                                    : Colors.black87,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        )
-                      : const SizedBox(),
-                ),
-              );
-            }),
-          ),
-        ),
-        // Selected Date Info
-        if (_selectedDate != null)
-          Container(
-            margin: const EdgeInsets.only(top: 16),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
+                          )
+                        : const SizedBox(),
+                  ),
+                );
+              }),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    'Selected: ${DateFormat('MMM dd, yyyy').format(_selectedDate)}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+          ),
+          // Selected Date Info
+          if (_selectedDate != null)
+            Container(
+              margin: const EdgeInsets.only(top: 16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Selected: ${DateFormat('MMM dd, yyyy').format(_selectedDate)}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                ),
-                Text(
-                  '${currentMonthEntries.contains(DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day)) ? "Has entries" : "No entries"}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: currentMonthEntries.contains(DateTime(
-                            _selectedDate.year,
-                            _selectedDate.month,
-                            _selectedDate.day))
-                        ? Colors.green
-                        : Colors.grey,
+                  Text(
+                    currentMonthEntries.contains(DateTime(_selectedDate.year,
+                            _selectedDate.month, _selectedDate.day))
+                        ? 'Has entries'
+                        : 'No entries',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: currentMonthEntries.contains(DateTime(
+                              _selectedDate.year,
+                              _selectedDate.month,
+                              _selectedDate.day))
+                          ? Colors.green
+                          : Colors.grey,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }
 
 class _EntryCard extends StatefulWidget {
-  const _EntryCard({required this.entry});
+  const _EntryCard({required this.entry, required this.index});
   final Entry entry;
+  final int index;
 
   @override
   State<_EntryCard> createState() => _EntryCardState();
 }
 
-class _EntryCardState extends State<_EntryCard> with TickerProviderStateMixin {
+class _EntryCardState extends State<_EntryCard> {
   bool _showIcons = true;
 
   void _showEditDialog(BuildContext context) {
@@ -1221,7 +1288,11 @@ class _EntryCardState extends State<_EntryCard> with TickerProviderStateMixin {
           ],
         ),
       ),
-    );
+    ).animate().fadeIn(duration: 600.ms, delay: (widget.index * 100).ms).slideY(
+        begin: 0.3,
+        duration: 600.ms,
+        delay: (widget.index * 100).ms,
+        curve: Curves.easeOut);
   }
 
   Widget _buildIconsSection(
@@ -1237,7 +1308,11 @@ class _EntryCardState extends State<_EntryCard> with TickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.center,
             children: worldIcons.map((worldIcon) {
               return Padding(
-                padding: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.only(
+                  right: 8,
+                  bottom: 8,
+                  left: 8,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
