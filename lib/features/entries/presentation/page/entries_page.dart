@@ -592,8 +592,8 @@ class _EntriesPageState extends State<EntriesPage> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    // Filter entries for current month only
-    final currentMonthEntries = entryDates.where((date) {
+    // Filter entries for the month being displayed in the calendar
+    final displayedMonthEntries = entryDates.where((date) {
       return date.year == _currentMonth.year &&
           date.month == _currentMonth.month;
     }).toSet();
@@ -631,7 +631,7 @@ class _EntriesPageState extends State<EntriesPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '${currentMonthEntries.length} entries',
+                    '${displayedMonthEntries.length} entries',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[600],
@@ -667,7 +667,7 @@ class _EntriesPageState extends State<EntriesPage> {
           ),
           const SizedBox(height: 8),
           // Current week view
-          _buildCurrentWeekRow(currentMonthEntries, today),
+          _buildCurrentWeekRow(displayedMonthEntries, today),
         ],
       ),
     );
@@ -746,8 +746,8 @@ class _EntriesPageState extends State<EntriesPage> {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
-    // Filter entries for current month only
-    final currentMonthEntries = entryDates.where((date) {
+    // Filter entries for the month being displayed in the calendar
+    final displayedMonthEntries = entryDates.where((date) {
       return date.year == _currentMonth.year &&
           date.month == _currentMonth.month;
     }).toSet();
@@ -862,8 +862,8 @@ class _EntriesPageState extends State<EntriesPage> {
                   DateTime(_selectedDate.year, _selectedDate.month,
                       _selectedDate.day),
                 );
-                final hasEntry =
-                    isCurrentMonth && currentMonthEntries.contains(currentDate);
+                final hasEntry = isCurrentMonth &&
+                    displayedMonthEntries.contains(currentDate);
                 final isFutureDate = currentDate.isAfter(today);
 
                 return Expanded(
@@ -946,13 +946,13 @@ class _EntriesPageState extends State<EntriesPage> {
                     ),
                   ),
                   Text(
-                    currentMonthEntries.contains(DateTime(_selectedDate.year,
+                    displayedMonthEntries.contains(DateTime(_selectedDate.year,
                             _selectedDate.month, _selectedDate.day))
                         ? 'Has entries'
                         : 'No entries',
                     style: TextStyle(
                       fontSize: 12,
-                      color: currentMonthEntries.contains(DateTime(
+                      color: displayedMonthEntries.contains(DateTime(
                               _selectedDate.year,
                               _selectedDate.month,
                               _selectedDate.day))
